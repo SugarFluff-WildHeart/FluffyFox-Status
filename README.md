@@ -1,82 +1,76 @@
-# Dune Docker Addon Template
+# 🦊 Fluffy Fox Status
 
-Starter template for building community addons for Dune Docker Console.
+A lightweight hardware and system monitoring addon for **Dune Docker Console**.
 
-Addons run inside the console as iframe pages and talk to the console through a permissioned bridge. Server owners review requested permissions when installing an addon.
+Fluffy Fox Status provides a simple dashboard for viewing server hardware sensor information and system status directly inside Dune Docker Console.
 
-## Repository Layout
+---
 
-```text
-addon.json                 Addon identity, version, entry path, and permissions.
-web/                       The addon page shown inside Dune Docker Console.
-web/index.html             Addon HTML entry point.
-web/addon.js               Your addon behavior.
-web/addon.css              Your addon styling.
-web/dune-addon-bridge.js   Small helper for calling console APIs.
-docs/                      Focused docs for building and publishing.
-examples/                  Copyable bridge request examples.
-scripts/                   Validation and optional local packaging tools.
-.github/workflows/         GitHub validation and release packaging.
-```
+## ✨ Features
 
-Most addon developers only need to edit `addon.json` and files under `web/`.
+### 🌡️ Temperature Monitoring
 
-## Quick Start
+Displays hardware temperature information provided by Linux `lm-sensors`.
 
-1. Click **Use this template** on GitHub.
-2. Update `addon.json` with your addon details.
-3. Update `data-addon-id` in `web/index.html` to match `addon.json.id`.
-4. Build your UI in `web/`.
-5. Validate locally:
+Supported sensor data depends on the hardware and kernel drivers available on the host.
 
-   ```bash
-   node scripts/validate.js
-   ```
+Examples may include:
 
-6. Commit and push your addon.
-7. Create a version tag matching `addon.json.version`:
+- CPU package temperature
+- Individual CPU core temperatures
+- Network adapter temperatures
+- ACPI temperature sensors
+- Other hardware sensors exposed through `lm-sensors`
 
-   ```bash
-   git tag v0.1.0
-   git push origin v0.1.0
-   ```
+The addon does **not** invent or simulate temperature values when running inside Dune Docker Console.
 
-GitHub Actions will validate, package, create the GitHub Release, and upload the addon zip plus its SHA-256 checksum.
+---
 
-## How Addons Are Listed
+### 🖥️ System Status
 
-There are three repositories involved:
+The dashboard provides system status information including:
 
-- **Template repo:** this starter project.
-- **Your addon repo:** your addon code and GitHub Releases.
-- **Community addon index:** the reviewed list shown in Dune Docker Console.
+- Server status
+- Sensor availability
+- Memory usage
+- Swap usage
+- System load
+- System uptime
 
-Community addon index:
+---
 
-```text
-https://github.com/Red-Blink/dune-docker-addons
-```
+### 🔄 Manual Refresh
 
-When your addon is ready, open a pull request to `dune-docker-addons`. Your PR should add `addons/<your-addon-id>.json` and update `index.json`.
+The dashboard includes a refresh control for requesting the latest available monitoring information.
 
-The community index also owns addon lifecycle status, such as `active`, `deprecated`, `unsupported`, `removed`, and `blocked`. Do not put those lifecycle fields in your addon's `addon.json`; they are catalog metadata used by Dune Docker Console to warn users or block unsafe/abandoned addons.
+---
 
-## Docs
+### 🎨 Custom Dashboard
 
-- [Getting Started](docs/getting-started.md)
-- [Local Development](docs/local-development.md)
-- [Bridge API](docs/bridge-api.md)
-- [Permissions](docs/permissions.md)
-- [Publishing](docs/publishing.md)
+Fluffy Fox Status uses a dark monitoring-style interface with:
 
-## Local Preview
+- Responsive sensor cards
+- Temperature status indicators
+- System status cards
+- Custom Fluffy Fox background artwork
+- Responsive layout for different screen sizes
 
-You can open `web/index.html` directly in a browser for layout work. Use mock data there, then install the addon into a local Dune Docker Console instance to test the real bridge.
+---
 
-See [Local Development](docs/local-development.md) for the full local testing workflow.
+## 🧰 Requirements
 
-For local packaging tests only:
+Fluffy Fox Status is designed to run inside **Dune Docker Console**.
+
+The host running the Dune Docker environment should have:
+
+- Linux
+- `lm-sensors`
+- Appropriate kernel hardware-monitoring drivers
+
+### Installing `lm-sensors`
+
+On Ubuntu/Debian:
 
 ```bash
-bash scripts/package.sh
-```
+sudo apt update
+sudo apt install lm-sensors
