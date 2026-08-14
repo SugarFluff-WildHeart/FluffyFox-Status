@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html
+    lang="en"
+    data-addon-id="fluffy-fox-status"
+>
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Fluffy Fox Status</title>
+
+    <link
+        rel="stylesheet"
+        href="addon.css"
+    >
+
+    <style>
+
+        html,
+        body {
+            min-height: 100%;
+        }
+
+        body {
+            background-image:
+                linear-gradient(
+                    rgba(10, 5, 15, 0.68),
+                    rgba(10, 5, 15, 0.68)
+                ),
+                url("./fluffy-fox-status-bg.png")
+
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+
+        <div class="fox">
+            🦊
+        </div>
+
+        <div>
+
+            <h1>
+                Fluffy Fox Status
+            </h1>
+
+            <p>
+                Dune Server Hardware Monitor
+            </p>
+
+        </div>
+
+    </header>
+
+
+    <!-- TEMPERATURES -->
+
+    <section class="status-card">
+
+        <div class="status-header">
+
+            <div>
+
+                <h2>
+                    Temperature Sensors
+                </h2>
+
+                <span id="last-update">
+                    Waiting for sensor data...
+                </span>
+
+            </div>
+
+            <button
+                id="refresh-button"
+                type="button"
+            >
+                ↻ Refresh
+            </button>
+
+        </div>
+
+
+        <div
+            id="sensor-grid"
+            class="sensor-grid"
+        >
+
+            <div class="loading">
+
+                🦊
+
+                <span>
+                    Reading sensors...
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- SYSTEM STATUS -->
+
+    <section class="status-card">
+
+        <h2>
+            System Status
+        </h2>
+
+
+        <div class="system-grid">
+
+            <div class="system-item">
+
+                <span class="label">
+                    Server
+                </span>
+
+                <span
+                    id="server-status"
+                    class="value"
+                >
+                    WAITING
+                </span>
+
+            </div>
+
+
+            <div class="system-item">
+
+                <span class="label">
+                    Sensors
+                </span>
+
+                <span
+                    id="sensor-status"
+                    class="value"
+                >
+                    WAITING
+                </span>
+
+            </div>
+
+
+            <div class="system-item">
+
+                <span class="label">
+                    Memory
+                </span>
+
+                <span
+                    id="memory-status"
+                    class="value"
+                >
+                    WAITING
+                </span>
+
+            </div>
+
+
+            <div class="system-item">
+
+                <span class="label">
+                    Swap
+                </span>
+
+                <span
+                    id="swap-status"
+                    class="value"
+                >
+                    WAITING
+                </span>
+
+            </div>
+
+
+            <div class="system-item">
+
+                <span class="label">
+                    Load
+                </span>
+
+                <span
+                    id="load-status"
+                    class="value"
+                >
+                    WAITING
+                </span>
+
+            </div>
+
+
+            <div class="system-item">
+
+                <span class="label">
+                    Uptime
+                </span>
+
+                <span
+                    id="uptime-status"
+                    class="value"
+                >
+                    WAITING
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <footer>
+
+        🦊 Fluffy Fox Status
+
+        <span>
+            v0.1.0
+        </span>
+
+    </footer>
+
+</div>
+
+
+<script src="dune-addon-bridge.js"></script>
+<script src="addon.js"></script>
+
+</body>
+
+</html>

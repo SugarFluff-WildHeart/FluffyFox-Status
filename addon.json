@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "fluffy-fox-status",
+  "name": "Fluffy Fox Status",
+  "description": "Hardware and system monitoring addon for Dune Docker Console.",
+  "author": "SugarFluff WildHeart",
+  "version": "0.1.0",
+  "type": "ui",
+  "entry": {
+    "navigation": "Fluffy Fox Status",
+    "path": "web/index.html"
+  },
+  "permissions": {
+    "server": ["status"]
+  }
+}

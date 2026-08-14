@@ -1,0 +1,507 @@
+:root {
+
+    --bg: #0f1115;
+
+    --panel: rgba(24, 27, 33, 0.82);
+
+    --panel-light: rgba(32, 36, 44, 0.88);
+
+
+    --text: #f1f1f1;
+
+    --muted: #8f96a3;
+
+
+    --green: #5ee88a;
+
+    --yellow: #ffd75e;
+
+    --orange: #ff9f43;
+
+    --red: #ff5e5e;
+
+
+    --border: #2b303a;
+
+}
+
+
+/* ---------------------------------------------------------
+ * GLOBAL
+ * --------------------------------------------------------- */
+
+* {
+
+    box-sizing: border-box;
+
+}
+
+
+html {
+
+    min-height: 100%;
+
+}
+
+
+body {
+
+    margin: 0;
+
+    min-height: 100vh;
+
+
+    background-color: var(--bg);
+
+
+    background-image:
+        linear-gradient(
+            rgba(10, 5, 15, 0.58),
+            rgba(10, 5, 15, 0.58)
+        ),
+        url("./fluffy-fox-status-bg.png");
+
+
+    background-size: cover;
+
+
+    background-position:
+        center center;
+
+
+    background-repeat: no-repeat;
+
+
+    background-attachment: fixed;
+
+
+    color: var(--text);
+
+
+    font-family:
+        Inter,
+        Arial,
+        sans-serif;
+
+}
+
+
+/* ---------------------------------------------------------
+ * MAIN CONTAINER
+ * --------------------------------------------------------- */
+
+.container {
+
+    position: relative;
+
+    z-index: 1;
+
+
+    max-width: 1100px;
+
+    margin: auto;
+
+    padding: 30px;
+
+}
+
+
+/* ---------------------------------------------------------
+ * HEADER
+ * --------------------------------------------------------- */
+
+header {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    margin-bottom: 30px;
+
+}
+
+
+.fox {
+
+    font-size: 52px;
+
+}
+
+
+h1 {
+
+    margin: 0;
+
+    font-size: 30px;
+
+}
+
+
+h2 {
+
+    margin: 0 0 6px 0;
+
+}
+
+
+p {
+
+    margin: 4px 0;
+
+    color: var(--muted);
+
+}
+
+
+/* ---------------------------------------------------------
+ * STATUS CARDS
+ * --------------------------------------------------------- */
+
+.status-card {
+
+    background: var(--panel);
+
+
+    border: 1px solid var(--border);
+
+
+    border-radius: 12px;
+
+
+    padding: 24px;
+
+
+    margin-bottom: 20px;
+
+
+    backdrop-filter: blur(4px);
+
+    -webkit-backdrop-filter: blur(4px);
+
+}
+
+
+/* ---------------------------------------------------------
+ * STATUS HEADER
+ * --------------------------------------------------------- */
+
+.status-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 20px;
+
+}
+
+
+#last-update {
+
+    color: var(--muted);
+
+    font-size: 13px;
+
+}
+
+
+/* ---------------------------------------------------------
+ * BUTTON
+ * --------------------------------------------------------- */
+
+button {
+
+    background: var(--panel-light);
+
+
+    color: var(--text);
+
+
+    border: 1px solid var(--border);
+
+
+    border-radius: 7px;
+
+
+    padding: 9px 16px;
+
+
+    cursor: pointer;
+
+}
+
+
+button:hover {
+
+    background: #292e38;
+
+}
+
+
+button:disabled {
+
+    opacity: 0.5;
+
+    cursor: wait;
+
+}
+
+
+/* ---------------------------------------------------------
+ * SENSOR GRID
+ * --------------------------------------------------------- */
+
+.sensor-grid {
+
+    display: grid;
+
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(220px, 1fr)
+        );
+
+
+    gap: 15px;
+
+}
+
+
+.sensor {
+
+    background: var(--panel-light);
+
+
+    border: 1px solid var(--border);
+
+
+    border-radius: 10px;
+
+
+    padding: 20px;
+
+}
+
+
+.sensor-name {
+
+    color: var(--muted);
+
+
+    font-size: 14px;
+
+
+    margin-bottom: 8px;
+
+}
+
+
+.sensor-temperature {
+
+    font-size: 34px;
+
+
+    font-weight: bold;
+
+}
+
+
+.sensor-state {
+
+    margin-top: 8px;
+
+
+    font-size: 13px;
+
+}
+
+
+/* ---------------------------------------------------------
+ * SENSOR STATES
+ * --------------------------------------------------------- */
+
+.normal {
+
+    color: var(--green);
+
+}
+
+
+.warm {
+
+    color: var(--yellow);
+
+}
+
+
+.hot {
+
+    color: var(--orange);
+
+}
+
+
+.critical {
+
+    color: var(--red);
+
+}
+
+
+/* ---------------------------------------------------------
+ * SYSTEM STATUS
+ * --------------------------------------------------------- */
+
+.system-grid {
+
+    display: grid;
+
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(200px, 1fr)
+        );
+
+
+    gap: 15px;
+
+}
+
+
+.system-item {
+
+    background: var(--panel-light);
+
+
+    border-radius: 9px;
+
+
+    padding: 16px;
+
+}
+
+
+/* ---------------------------------------------------------
+ * LABELS
+ * --------------------------------------------------------- */
+
+.label {
+
+    display: block;
+
+
+    color: var(--muted);
+
+
+    font-size: 13px;
+
+
+    margin-bottom: 6px;
+
+}
+
+
+.value {
+
+    font-weight: bold;
+
+}
+
+
+.online {
+
+    color: var(--green);
+
+}
+
+
+/* ---------------------------------------------------------
+ * LOADING
+ * --------------------------------------------------------- */
+
+.loading {
+
+    color: var(--muted);
+
+
+    padding: 30px;
+
+
+    text-align: center;
+
+}
+
+
+/* ---------------------------------------------------------
+ * FOOTER
+ * --------------------------------------------------------- */
+
+footer {
+
+    color: var(--muted);
+
+
+    font-size: 12px;
+
+
+    padding: 10px 2px;
+
+}
+
+
+footer span {
+
+    float: right;
+
+}
+
+
+/* ---------------------------------------------------------
+ * SMALL SCREENS
+ * --------------------------------------------------------- */
+
+@media (
+    max-width: 700px
+) {
+
+    .container {
+
+        padding: 18px;
+
+    }
+
+
+    header {
+
+        gap: 12px;
+
+    }
+
+
+    .fox {
+
+        font-size: 42px;
+
+    }
+
+
+    h1 {
+
+        font-size: 24px;
+
+    }
+
+
+    .status-card {
+
+        padding: 18px;
+
+    }
+
+}
