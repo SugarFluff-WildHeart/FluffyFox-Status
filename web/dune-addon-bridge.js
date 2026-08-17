@@ -3,6 +3,26 @@
     "use strict";
 
 
+    /*
+     * =========================================================
+     * FLUFFY FOX STATUS
+     * DUNE ADDON BRIDGE
+     * =========================================================
+     *
+     * Provides:
+     *
+     *     window.DuneAddon.request(action, payload)
+     *
+     * Example:
+     *
+     *     await window.DuneAddon.request(
+     *         "server.hardware.status"
+     *     );
+     *
+     * =========================================================
+     */
+
+
     const addonId =
         document.documentElement.dataset.addonId ||
         "fluffy-fox-status";
@@ -12,15 +32,21 @@
         new Map();
 
 
+    /*
+     * ---------------------------------------------------------
+     * REQUEST ID
+     * ---------------------------------------------------------
+     */
+
     function createRequestId() {
 
         if (
             window.crypto &&
-            typeof window.crypto.randomUUID === "function"
+            typeof window.crypto.randomUUID ===
+                "function"
         ) {
 
             return window.crypto.randomUUID();
-
         }
 
 
@@ -31,14 +57,32 @@
                 .toString(16)
                 .slice(2)
         );
-
     }
 
+
+    /*
+     * ---------------------------------------------------------
+     * REQUEST
+     * ---------------------------------------------------------
+     */
 
     function request(
         action,
         payload = {}
     ) {
+
+        if (
+            typeof action !== "string" ||
+            action.trim() === ""
+        ) {
+
+            return Promise.reject(
+                new Error(
+                    "Bridge action is required."
+                )
+            );
+        }
+
 
         const requestId =
             createRequestId();
@@ -47,17 +91,47 @@
         return new Promise(
             (resolve, reject) => {
 
+                const timeoutId =
+                    window.setTimeout(
+                        () => {
+
+                            const pending =
+                                pendingRequests.get(
+                                    requestId
+                                );
+
+                            if (!pending) {
+                                return;
+                            }
+
+                            pendingRequests.delete(
+                                requestId
+                            );
+
+                            pending.reject(
+                                new Error(
+                                    "Bridge request timed out."
+                                )
+                            );
+
+                        },
+                        30000
+                    );
+
+
                 pendingRequests.set(
                     requestId,
                     {
                         resolve,
-                        reject
+                        reject,
+                        timeoutId
                     }
                 );
 
 
                 window.parent.postMessage(
                     {
+
                         type:
                             "dune-addon-request",
 
@@ -72,59 +146,36 @@
 
                         payload:
                             payload
+
                     },
 
                     window.location.origin
                 );
-
-
-                window.setTimeout(
-                    () => {
-
-                        const pending =
-                            pendingRequests.get(
-                                requestId
-                            );
-
-
-                        if (!pending) {
-                            return;
-                        }
-
-
-                        pendingRequests.delete(
-                            requestId
-                        );
-
-
-                        pending.reject(
-                            new Error(
-                                "Bridge request timed out."
-                            )
-                        );
-
-                    },
-
-                    30000
-                );
-
             }
         );
-
     }
 
 
+    /*
+     * ---------------------------------------------------------
+     * RESPONSE HANDLER
+     * ---------------------------------------------------------
+     */
+
     window.addEventListener(
         "message",
-        (event) => {
+        event => {
+
+            /*
+             * Only accept messages from the same
+             * Dune Console origin.
+             */
 
             if (
                 event.origin !==
                 window.location.origin
             ) {
-
                 return;
-
             }
 
 
@@ -136,19 +187,20 @@
                 message.type !==
                 "dune-addon-response"
             ) {
-
                 return;
-
             }
 
+
+            /*
+             * Ignore responses belonging
+             * to another addon.
+             */
 
             if (
                 message.addonId &&
                 message.addonId !== addonId
             ) {
-
                 return;
-
             }
 
 
@@ -168,6 +220,16 @@
             );
 
 
+            if (
+                pending.timeoutId
+            ) {
+
+                window.clearTimeout(
+                    pending.timeoutId
+                );
+            }
+
+
             if (message.ok) {
 
                 pending.resolve(
@@ -182,15 +244,23 @@
                         "Bridge request failed."
                     )
                 );
-
             }
 
         }
     );
 
 
+    /*
+     * ---------------------------------------------------------
+     * PUBLIC API
+     * ---------------------------------------------------------
+     */
+
     window.DuneAddon = {
+
         request
+
     };
+
 
 })();

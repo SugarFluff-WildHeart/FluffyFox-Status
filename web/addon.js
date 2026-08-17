@@ -2,412 +2,327 @@
 
     "use strict";
 
-
-    const sensorGrid =
-        document.querySelector(
-            "#sensor-grid"
-        );
-		
-		/*
-		 * ---------------------------------------------------------
-		 * REFRESH SETTINGS
-		 * ---------------------------------------------------------
-		 */
-
-		const refreshIntervalSelect =
-			document.querySelector(
-				"#refresh-interval"
-			);
-
-		const refreshStatus =
-			document.querySelector(
-				"#refresh-status"
-			);
-
-		const refreshIntervalLabel =
-			document.querySelector(
-				"#refresh-interval-label"
-			);
-
-		const REFRESH_STORAGE_KEY =
-			"fluffyFox.refreshInterval";
-
-		const REFRESH_INTERVALS = [
-			0,
-			1000,
-			5000,
-			10000,
-			30000,
-			60000
-		];
-
-		const DEFAULT_REFRESH_INTERVAL = 5000;
-
-		let refreshTimer = null;
-
-
-		/*
-		 * ---------------------------------------------------------
-		 * GET REFRESH INTERVAL
-		 * ---------------------------------------------------------
-		 */
-
-		function getRefreshInterval() {
-
-			const stored =
-				Number(
-					localStorage.getItem(
-						REFRESH_STORAGE_KEY
-					)
-				);
-
-			if (
-				REFRESH_INTERVALS.includes(
-					stored
-				)
-			) {
-				return stored;
-			}
-
-			return DEFAULT_REFRESH_INTERVAL;
-		}
-
-
-		/*
-		 * ---------------------------------------------------------
-		 * FORMAT REFRESH INTERVAL
-		 * ---------------------------------------------------------
-		 */
-
-		function formatRefreshInterval(
-			interval
-		) {
-
-			if (interval === 0) {
-				return "Manual";
-			}
-
-			if (interval < 60000) {
-
-				const seconds =
-					interval / 1000;
-
-				return (
-					"Every " +
-					seconds +
-					" second" +
-					(
-						seconds === 1
-							? ""
-							: "s"
-					)
-				);
-
-			}
-
-			return "Every 60 seconds";
-		}
-
-
-		/*
-		 * ---------------------------------------------------------
-		 * UPDATE REFRESH UI
-		 * ---------------------------------------------------------
-		 */
-
-		function updateRefreshMeta(
-			interval
-		) {
-
-			if (refreshIntervalSelect) {
-
-				refreshIntervalSelect.value =
-					String(interval);
-
-			}
-
-			if (refreshStatus) {
-
-				refreshStatus.textContent =
-					interval === 0
-						? "● Auto-refresh disabled"
-						: "● Auto-refresh enabled";
-
-			}
-
-			if (refreshIntervalLabel) {
-
-				refreshIntervalLabel.textContent =
-					formatRefreshInterval(
-						interval
-					);
-
-			}
-
-		}
-
-
-		/*
-		 * ---------------------------------------------------------
-		 * START AUTO REFRESH
-		 * ---------------------------------------------------------
-		 */
-
-		function startAutoRefresh() {
-
-			/*
-			 * Always clear the previous timer first.
-			 *
-			 * This prevents multiple timers from
-			 * running if the user changes the setting.
-			 */
-
-			if (refreshTimer !== null) {
-
-				window.clearInterval(
-					refreshTimer
-				);
-
-				refreshTimer = null;
-
-			}
-
-			const interval =
-				getRefreshInterval();
-
-			updateRefreshMeta(
-				interval
-			);
-
-			/*
-			 * Manual mode.
-			 */
-
-			if (interval === 0) {
-				return;
-			}
-
-			/*
-			 * Start the new timer using the
-			 * existing hardware-loading function.
-			 */
-
-			refreshTimer =
-				window.setInterval(
-					loadTemperatures,
-					interval
-				);
-
-		}
-
-
-		/*
-		 * ---------------------------------------------------------
-		 * SET REFRESH INTERVAL
-		 * ---------------------------------------------------------
-		 */
-
-		function setRefreshInterval(
-			interval
-		) {
-
-			interval =
-				Number(interval);
-
-			if (
-				!REFRESH_INTERVALS.includes(
-					interval
-				)
-			) {
-
-				interval =
-					DEFAULT_REFRESH_INTERVAL;
-
-			}
-
-			localStorage.setItem(
-				REFRESH_STORAGE_KEY,
-				String(interval)
-			);
-
-			startAutoRefresh();
-
-		}
-
-
-		/*
-		 * ---------------------------------------------------------
-		 * INITIALIZE REFRESH SETTINGS
-		 * ---------------------------------------------------------
-		 */
-
-		function initializeRefreshSettings() {
-
-			if (!refreshIntervalSelect) {
-				return;
-			}
-
-			const interval =
-				getRefreshInterval();
-
-			refreshIntervalSelect.value =
-				String(interval);
-
-			refreshIntervalSelect.addEventListener(
-				"change",
-				function () {
-
-					setRefreshInterval(
-						this.value
-					);
-
-				}
-			);
-
-			updateRefreshMeta(
-				interval
-			);
-
-		}
-
-
-    const lastUpdate =
-        document.querySelector(
-            "#last-update"
-        );
-
-
-    const refreshButton =
-        document.querySelector(
-            "#refresh-button"
-        );
-
-
-    const serverStatus =
-        document.querySelector(
-            "#server-status"
-        );
-
-
-    const sensorStatus =
-        document.querySelector(
-            "#sensor-status"
-        );
-
-
-    const memoryStatus =
-        document.querySelector(
-            "#memory-status"
-        );
-
-
-    const swapStatus =
-        document.querySelector(
-            "#swap-status"
-        );
-
-
-    const loadStatus =
-        document.querySelector(
-            "#load-status"
-        );
-
-
-    const uptimeStatus =
-        document.querySelector(
-            "#uptime-status"
-        );
+    /*
+     * =========================================================
+     * FLUFFY FOX STATUS
+     * =========================================================
+     *
+     * Front-end UI for the Dune addon.
+     *
+     * IMPORTANT:
+     *
+     * Real hardware/system information comes from:
+     *
+     *     server.hardware.status
+     *
+     * The old FluffyFox.Sensor.read API is NOT used here.
+     *
+     * =========================================================
+     */
 
 
     /*
      * ---------------------------------------------------------
-     * HOST HARDWARE DOM
+     * DOM
      * ---------------------------------------------------------
      */
 
-    const cpuModel =
+    const sensorGrid =
+        document.querySelector("#sensor-grid");
+
+    const lastUpdate =
+        document.querySelector("#last-update");
+
+    const refreshButton =
+        document.querySelector("#refresh-button");
+
+    const refreshLabel =
+        document.querySelector("#refresh-label");
+
+    const refreshIcon =
+        document.querySelector("#refresh-icon");
+
+    const serverStatus =
+        document.querySelector("#server-status");
+
+    const sensorStatus =
+        document.querySelector("#sensor-status");
+
+    const memoryStatus =
+        document.querySelector("#memory-status");
+
+    const swapStatus =
+        document.querySelector("#swap-status");
+
+    const loadStatus =
+        document.querySelector("#load-status");
+
+    const uptimeStatus =
+        document.querySelector("#uptime-status");
+
+    const memoryBar =
+        document.querySelector("#memory-bar");
+
+    const swapBar =
+        document.querySelector("#swap-bar");
+
+    const healthBanner =
+        document.querySelector("#health-banner");
+
+    const healthTitle =
+        document.querySelector("#health-title");
+
+    const healthMessage =
+        document.querySelector("#health-message");
+
+    const healthState =
+        document.querySelector("#health-state");
+
+
+    /*
+     * ---------------------------------------------------------
+     * REFRESH SETTINGS
+     * ---------------------------------------------------------
+     */
+
+    const refreshIntervalSelect =
         document.querySelector(
-            "#cpu-model"
+            "#refresh-interval"
         );
 
-
-    const cpuTopology =
+    const refreshStatus =
         document.querySelector(
-            "#cpu-topology"
+            "#refresh-status"
         );
 
-
-    const cpuClock =
+    const refreshIntervalLabel =
         document.querySelector(
-            "#cpu-clock"
+            "#refresh-interval-label"
         );
 
+    const REFRESH_STORAGE_KEY =
+        "fluffyFox.refreshInterval";
 
-    const cpuTemperature =
-        document.querySelector(
-            "#cpu-temperature"
-        );
+    const REFRESH_INTERVALS = [
+        0,
+        5000,
+        10000,
+        30000,
+        60000
+    ];
 
+    const DEFAULT_REFRESH_INTERVAL =
+        5000;
 
-    const nvmeModel =
-        document.querySelector(
-            "#nvme-model"
-        );
+    let refreshTimer = null;
 
-
-    const nvmeTemperature =
-        document.querySelector(
-            "#nvme-temperature"
-        );
-
-
-    const nvmeCapacity =
-        document.querySelector(
-            "#nvme-capacity"
-        );
+    let requestInFlight = false;
 
 
-    const ssdModel =
-        document.querySelector(
-            "#ssd-model"
-        );
-
-
-    const ssdTemperature =
-        document.querySelector(
-            "#ssd-temperature"
-        );
-
-
-    const ssdCapacity =
-        document.querySelector(
-            "#ssd-capacity"
-        );
-
+    /*
+     * ---------------------------------------------------------
+     * ENVIRONMENT
+     * ---------------------------------------------------------
+     */
 
     const LOCAL_DEVELOPMENT =
         window.parent === window;
 
-
     const HAS_DUNE_BRIDGE =
         !LOCAL_DEVELOPMENT &&
         window.DuneAddon &&
-        typeof window.DuneAddon.request ===
-            "function";
+        typeof window.DuneAddon.request === "function";
 
 
     /*
      * ---------------------------------------------------------
-     * LOCAL DEVELOPMENT ONLY
+     * REFRESH INTERVAL
+     * ---------------------------------------------------------
+     */
+
+    function getRefreshInterval() {
+
+        const stored =
+            Number(
+                localStorage.getItem(
+                    REFRESH_STORAGE_KEY
+                )
+            );
+
+        if (
+            REFRESH_INTERVALS.includes(
+                stored
+            )
+        ) {
+            return stored;
+        }
+
+        return DEFAULT_REFRESH_INTERVAL;
+    }
+
+
+    function formatRefreshInterval(
+        interval
+    ) {
+
+        if (interval === 0) {
+            return "Manual";
+        }
+
+        if (interval < 60000) {
+
+            const seconds =
+                interval / 1000;
+
+            return (
+                "Every " +
+                seconds +
+                " second" +
+                (
+                    seconds === 1
+                        ? ""
+                        : "s"
+                )
+            );
+        }
+
+        return "Every 60 seconds";
+    }
+
+
+    function updateRefreshMeta(
+        interval
+    ) {
+
+        if (refreshIntervalSelect) {
+
+            refreshIntervalSelect.value =
+                String(interval);
+        }
+
+        if (refreshStatus) {
+
+            refreshStatus.textContent =
+                interval === 0
+                    ? "● Auto-refresh disabled"
+                    : "● Auto-refresh enabled";
+        }
+
+        if (refreshIntervalLabel) {
+
+            refreshIntervalLabel.textContent =
+                formatRefreshInterval(
+                    interval
+                );
+        }
+    }
+
+
+    function startAutoRefresh() {
+
+        if (refreshTimer !== null) {
+
+            window.clearInterval(
+                refreshTimer
+            );
+
+            refreshTimer = null;
+        }
+
+        const interval =
+            getRefreshInterval();
+
+        updateRefreshMeta(
+            interval
+        );
+
+        if (interval === 0) {
+            return;
+        }
+
+        refreshTimer =
+            window.setInterval(
+                function () {
+
+                    /*
+                     * Do not stack requests.
+                     *
+                     * If the previous request is still
+                     * running, wait for the next interval.
+                     */
+
+                    if (!requestInFlight) {
+                        loadTemperatures();
+                    }
+
+                },
+                interval
+            );
+    }
+
+
+    function setRefreshInterval(
+        interval
+    ) {
+
+        interval =
+            Number(interval);
+
+        if (
+            !REFRESH_INTERVALS.includes(
+                interval
+            )
+        ) {
+            interval =
+                DEFAULT_REFRESH_INTERVAL;
+        }
+
+        localStorage.setItem(
+            REFRESH_STORAGE_KEY,
+            String(interval)
+        );
+
+        startAutoRefresh();
+    }
+
+
+    function initializeRefreshSettings() {
+
+        if (!refreshIntervalSelect) {
+            return;
+        }
+
+        const interval =
+            getRefreshInterval();
+
+        refreshIntervalSelect.value =
+            String(interval);
+
+        refreshIntervalSelect.addEventListener(
+            "change",
+            function () {
+
+                setRefreshInterval(
+                    this.value
+                );
+
+            }
+        );
+
+        updateRefreshMeta(
+            interval
+        );
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * LOCAL DEVELOPMENT MOCK
      * ---------------------------------------------------------
      *
-     * These values are ONLY used when index.html is opened
-     * directly in a normal browser.
+     * Used only when index.html is opened directly.
      *
-     * They are NEVER used when running inside Dune Console.
-     *
-     * The hardware object below is an addon-side preview
-     * schema. It is NOT assumed to be the real Core schema.
+     * Never used inside Dune Console.
      */
 
     function getMockData() {
@@ -415,7 +330,6 @@
         return {
 
             version: 1,
-
 
             temperatures: [
 
@@ -451,66 +365,6 @@
 
             ],
 
-
-            /*
-             * LOCAL PREVIEW ONLY.
-             *
-             * These values are not read from Dune Core yet.
-             * They exist so the new UI can be previewed.
-             */
-
-            hardware: {
-
-                cpu: {
-
-                    model:
-                        "AMD Ryzen 7 5800X",
-
-                    cores:
-                        8,
-
-                    threads:
-                        16,
-
-                    clock_mhz:
-                        4200,
-
-                    temperature:
-                        47.0
-
-                },
-
-
-                nvme: {
-
-                    model:
-                        "Samsung SSD 980 PRO 2TB",
-
-                    capacity_gb:
-                        2000,
-
-                    temperature:
-                        38.0
-
-                },
-
-
-                ssd: {
-
-                    model:
-                        "Samsung SSD 870 EVO 500GB",
-
-                    capacity_gb:
-                        500,
-
-                    temperature:
-                        36.0
-
-                }
-
-            },
-
-
             memory: {
 
                 total_kb:
@@ -526,7 +380,6 @@
                     50.0
 
             },
-
 
             swap: {
 
@@ -544,7 +397,6 @@
 
             },
 
-
             load: {
 
                 one:
@@ -558,12 +410,10 @@
 
             },
 
-
             uptime_seconds:
                 86400
 
         };
-
     }
 
 
@@ -590,9 +440,7 @@
                     "critical"
 
             };
-
         }
-
 
         if (
             temperature >= 75
@@ -607,9 +455,7 @@
                     "hot"
 
             };
-
         }
-
 
         if (
             temperature >= 60
@@ -624,9 +470,7 @@
                     "warm"
 
             };
-
         }
-
 
         return {
 
@@ -637,7 +481,6 @@
                 "normal"
 
         };
-
     }
 
 
@@ -674,7 +517,6 @@
                 "'",
                 "&#039;"
             );
-
     }
 
 
@@ -688,37 +530,28 @@
         kb
     ) {
 
-        const bytes =
-            Number(kb) * 1024;
-
+        const valueKB =
+            Number(kb);
 
         if (
-            !Number.isFinite(bytes) ||
-            bytes < 0
+            !Number.isFinite(valueKB) ||
+            valueKB < 0
         ) {
-
             return "UNKNOWN";
-
         }
 
-
         const units = [
-
             "KB",
             "MB",
             "GB",
             "TB"
-
         ];
 
-
         let value =
-            Number(kb);
-
+            valueKB;
 
         let unit =
             0;
-
 
         while (
             value >= 1024 &&
@@ -728,16 +561,13 @@
             value /= 1024;
 
             unit++;
-
         }
-
 
         return (
             value.toFixed(1) +
             " " +
             units[unit]
         );
-
     }
 
 
@@ -751,30 +581,24 @@
                 Number(seconds) || 0
             );
 
-
         const days =
             Math.floor(
                 seconds / 86400
             );
 
-
         seconds %= 86400;
-
 
         const hours =
             Math.floor(
                 seconds / 3600
             );
 
-
         seconds %= 3600;
-
 
         const minutes =
             Math.floor(
                 seconds / 60
             );
-
 
         return (
             days +
@@ -784,7 +608,244 @@
             minutes +
             "m"
         );
+    }
 
+
+    /*
+     * ---------------------------------------------------------
+     * SET BAR STATE
+     * ---------------------------------------------------------
+     */
+
+    function setMetricBar(
+        element,
+        percentage
+    ) {
+
+        if (!element) {
+            return;
+        }
+
+        let value =
+            Number(percentage);
+
+        if (!Number.isFinite(value)) {
+            value = 0;
+        }
+
+        value =
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    value
+                )
+            );
+
+        element.style.width =
+            value.toFixed(1) + "%";
+
+        element.classList.remove(
+            "warning",
+            "hot",
+            "critical"
+        );
+
+        if (value >= 90) {
+
+            element.classList.add(
+                "critical"
+            );
+
+        } else if (value >= 75) {
+
+            element.classList.add(
+                "hot"
+            );
+
+        } else if (value >= 60) {
+
+            element.classList.add(
+                "warning"
+            );
+        }
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * HEALTH
+     * ---------------------------------------------------------
+     */
+
+    function updateHealth(
+        data
+    ) {
+
+        if (!healthBanner) {
+            return;
+        }
+
+        healthBanner.classList.remove(
+            "health-loading",
+            "health-healthy",
+            "health-warning",
+            "health-critical",
+            "health-error"
+        );
+
+        let highestTemperature =
+            null;
+
+        if (
+            Array.isArray(
+                data?.temperatures
+            )
+        ) {
+
+            for (
+                const sensor
+                of data.temperatures
+            ) {
+
+                const temperature =
+                    Number(
+                        sensor?.temperature
+                    );
+
+                if (
+                    Number.isFinite(
+                        temperature
+                    )
+                ) {
+
+                    if (
+                        highestTemperature === null ||
+                        temperature > highestTemperature
+                    ) {
+                        highestTemperature =
+                            temperature;
+                    }
+                }
+            }
+        }
+
+        const memoryPercent =
+            Number(
+                data?.memory?.percent
+            );
+
+        const swapPercent =
+            Number(
+                data?.swap?.percent
+            );
+
+
+        /*
+         * Critical
+         */
+
+        if (
+            (
+                highestTemperature !== null &&
+                highestTemperature >= 85
+            ) ||
+            (
+                Number.isFinite(memoryPercent) &&
+                memoryPercent >= 95
+            )
+        ) {
+
+            healthBanner.classList.add(
+                "health-critical"
+            );
+
+            if (healthTitle) {
+                healthTitle.textContent =
+                    "SYSTEM CRITICAL";
+            }
+
+            if (healthMessage) {
+                healthMessage.textContent =
+                    highestTemperature !== null &&
+                    highestTemperature >= 85
+                        ? "Hardware temperature is critically high."
+                        : "System memory usage is critically high.";
+            }
+
+            if (healthState) {
+                healthState.textContent =
+                    "CRITICAL";
+            }
+
+            return;
+        }
+
+
+        /*
+         * Warning
+         */
+
+        if (
+            (
+                highestTemperature !== null &&
+                highestTemperature >= 75
+            ) ||
+            (
+                Number.isFinite(memoryPercent) &&
+                memoryPercent >= 80
+            ) ||
+            (
+                Number.isFinite(swapPercent) &&
+                swapPercent >= 50
+            )
+        ) {
+
+            healthBanner.classList.add(
+                "health-warning"
+            );
+
+            if (healthTitle) {
+                healthTitle.textContent =
+                    "SYSTEM WARNING";
+            }
+
+            if (healthMessage) {
+                healthMessage.textContent =
+                    "One or more system resources require attention.";
+            }
+
+            if (healthState) {
+                healthState.textContent =
+                    "WARNING";
+            }
+
+            return;
+        }
+
+
+        /*
+         * Healthy
+         */
+
+        healthBanner.classList.add(
+            "health-healthy"
+        );
+
+        if (healthTitle) {
+            healthTitle.textContent =
+                "SYSTEM HEALTHY";
+        }
+
+        if (healthMessage) {
+            healthMessage.textContent =
+                "Server hardware and system resources are operating normally.";
+        }
+
+        if (healthState) {
+            healthState.textContent =
+                "HEALTHY";
+        }
     }
 
 
@@ -798,6 +859,10 @@
         sensors
     ) {
 
+        if (!sensorGrid) {
+            return;
+        }
+
         if (
             !Array.isArray(sensors) ||
             sensors.length === 0
@@ -809,50 +874,57 @@
                 </div>
             `;
 
-
-            sensorStatus.textContent =
-                "NO DATA";
-
+            if (sensorStatus) {
+                sensorStatus.textContent =
+                    "NO DATA";
+            }
 
             return;
-
         }
 
 
-        sensorGrid.innerHTML =
+        const renderedSensors =
             sensors
                 .map(
                     sensor => {
 
                         const temperature =
                             Number(
-                                sensor.temperature
+                                sensor?.temperature
                             );
-
 
                         if (
                             !Number.isFinite(
                                 temperature
                             )
                         ) {
-
                             return "";
-
                         }
-
 
                         const state =
                             getTemperatureState(
                                 temperature
                             );
 
+                        /*
+                         * IMPORTANT FIX:
+                         *
+                         * Apply the state class to the
+                         * sensor container itself.
+                         *
+                         * Previously the state class only
+                         * existed on the temperature text,
+                         * meaning .sensor.normal etc. never
+                         * matched.
+                         */
 
                         return `
-                            <div class="sensor">
+                            <div class="sensor ${state.className}">
 
                                 <div class="sensor-name">
                                     ${escapeHtml(
-                                        sensor.name
+                                        sensor?.name ||
+                                        "Unknown Sensor"
                                     )}
                                 </div>
 
@@ -872,160 +944,45 @@
 
                             </div>
                         `;
-
                     }
                 )
                 .join("");
 
 
-        sensorStatus.textContent =
-            `${sensors.length} SENSOR${
-                sensors.length === 1
-                    ? ""
-                    : "S"
-            } OK`;
+        sensorGrid.innerHTML =
+            renderedSensors ||
+            `
+                <div class="loading">
+                    No valid temperature readings.
+                </div>
+            `;
 
+
+        const validCount =
+            sensors.filter(
+                sensor =>
+                    Number.isFinite(
+                        Number(
+                            sensor?.temperature
+                        )
+                    )
+            ).length;
+
+        if (sensorStatus) {
+
+            sensorStatus.textContent =
+                `${validCount} SENSOR${
+                    validCount === 1
+                        ? ""
+                        : "S"
+                } OK`;
+        }
     }
 
 
     /*
      * ---------------------------------------------------------
-     * RENDER HOST HARDWARE
-     * ---------------------------------------------------------
-     *
-     * IMPORTANT:
-     *
-     * This currently consumes the local preview schema.
-     *
-     * Once Captain confirms the actual
-     * server.hardware.status response, ONLY this function
-     * should need to be adapted to the real field names.
-     */
-
-    function renderHardware(
-        hardware
-    ) {
-
-        if (!hardware) {
-
-            cpuModel.textContent =
-                "NOT AVAILABLE";
-
-            cpuTopology.textContent =
-                "Cores / Threads: NOT AVAILABLE";
-
-            cpuClock.textContent =
-                "Clock: NOT AVAILABLE";
-
-            cpuTemperature.textContent =
-                "Temperature: NOT AVAILABLE";
-
-
-            nvmeModel.textContent =
-                "NOT AVAILABLE";
-
-            nvmeTemperature.textContent =
-                "Temperature: NOT AVAILABLE";
-
-            nvmeCapacity.textContent =
-                "Capacity: NOT AVAILABLE";
-
-
-            ssdModel.textContent =
-                "NOT AVAILABLE";
-
-            ssdTemperature.textContent =
-                "Temperature: NOT AVAILABLE";
-
-            ssdCapacity.textContent =
-                "Capacity: NOT AVAILABLE";
-
-
-            return;
-
-        }
-
-
-        //const cpu =
-        //    hardware.cpu;
-
-
-        //const nvme =
-        //    hardware.nvme;
-
-
-        //const ssd =
-        //    hardware.ssd;
-
-
-        //if (cpu) {
-
-        //    cpuModel.textContent =
-        //        cpu.model ||
-        //        "Unknown CPU";
-
-
-        //    cpuTopology.textContent =
-        //        `Cores / Threads: ` +
-        //        `${cpu.cores ?? "?"} / ` +
-        //        `${cpu.threads ?? "?"}`;
-
-
-        //    cpuClock.textContent =
-        //        `Clock: ` +
-        //        `${cpu.clock_mhz ?? "?"} MHz`;
-
-
-        //    cpuTemperature.textContent =
-        //        `Temperature: ` +
-        //        `${cpu.temperature ?? "?"} °C`;
-
-        //}
-
-
-        //if (nvme) {
-
-        //    nvmeModel.textContent =
-        //        nvme.model ||
-        //        "Unknown NVMe";
-
-
-        //    nvmeTemperature.textContent =
-        //        `Temperature: ` +
-        //        `${nvme.temperature ?? "?"} °C`;
-
-
-        //    nvmeCapacity.textContent =
-        //        `Capacity: ` +
-        //        `${nvme.capacity_gb ?? "?"} GB`;
-
-        //}
-
-
-        //if (ssd) {
-
-        //    ssdModel.textContent =
-        //        ssd.model ||
-        //        "Unknown SSD";
-
-
-        //    ssdTemperature.textContent =
-        //        `Temperature: ` +
-        //        `${ssd.temperature ?? "?"} °C`;
-
-
-        //    ssdCapacity.textContent =
-        //        `Capacity: ` +
-        //        `${ssd.capacity_gb ?? "?"} GB`;
-
-        //}
-
-    //}
-
-
-    /*
-     * ---------------------------------------------------------
-     * RENDER SYSTEM
+     * SYSTEM
      * ---------------------------------------------------------
      */
 
@@ -1033,43 +990,83 @@
         data
     ) {
 
-        if (data.memory) {
+        /*
+         * MEMORY
+         */
+
+        if (data?.memory) {
+
+            const percent =
+                Number(
+                    data.memory.percent
+                );
 
             memoryStatus.textContent =
-                `${Number(
-                    data.memory.percent || 0
-                ).toFixed(1)}% ` +
-                `(${formatBytesFromKB(
-                    data.memory.used_kb
-                )})`;
+                Number.isFinite(percent)
+                    ? `${percent.toFixed(1)}% ` +
+                      `(${formatBytesFromKB(
+                          data.memory.used_kb
+                      )})`
+                    : "UNKNOWN";
+
+            setMetricBar(
+                memoryBar,
+                percent
+            );
 
         } else {
 
             memoryStatus.textContent =
                 "UNKNOWN";
 
+            setMetricBar(
+                memoryBar,
+                0
+            );
         }
 
 
-        if (data.swap) {
+        /*
+         * SWAP
+         */
+
+        if (data?.swap) {
+
+            const percent =
+                Number(
+                    data.swap.percent
+                );
 
             swapStatus.textContent =
-                `${Number(
-                    data.swap.percent || 0
-                ).toFixed(1)}% ` +
-                `(${formatBytesFromKB(
-                    data.swap.used_kb
-                )})`;
+                Number.isFinite(percent)
+                    ? `${percent.toFixed(1)}% ` +
+                      `(${formatBytesFromKB(
+                          data.swap.used_kb
+                      )})`
+                    : "UNKNOWN";
+
+            setMetricBar(
+                swapBar,
+                percent
+            );
 
         } else {
 
             swapStatus.textContent =
                 "UNKNOWN";
 
+            setMetricBar(
+                swapBar,
+                0
+            );
         }
 
 
-        if (data.load) {
+        /*
+         * LOAD
+         */
+
+        if (data?.load) {
 
             loadStatus.textContent =
                 `${Number(
@@ -1086,15 +1083,17 @@
 
             loadStatus.textContent =
                 "UNKNOWN";
-
         }
 
 
+        /*
+         * UPTIME
+         */
+
         uptimeStatus.textContent =
             formatUptime(
-                data.uptime_seconds
+                data?.uptime_seconds
             );
-
     }
 
 
@@ -1120,9 +1119,7 @@
                     )
             );
 
-
             return getMockData();
-
         }
 
 
@@ -1135,15 +1132,13 @@
             throw new Error(
                 "DuneAddon bridge unavailable."
             );
-
         }
 
 
         /*
-         * THIS IS THE REAL REQUEST.
+         * REAL CORE REQUEST
          *
-         * Hardware and system status is provided
-         * by Dune Docker Core.
+         * This is the ONLY hardware request.
          */
 
         const result =
@@ -1160,12 +1155,10 @@
             throw new Error(
                 "Invalid sensor response."
             );
-
         }
 
 
         return result;
-
     }
 
 
@@ -1177,20 +1170,45 @@
 
     async function loadTemperatures() {
 
+        /*
+         * Prevent overlapping requests.
+         */
+
+        if (requestInFlight) {
+            return;
+        }
+
+        requestInFlight =
+            true;
+
+
         if (refreshButton) {
 
             refreshButton.disabled =
                 true;
-
         }
 
+        if (refreshLabel) {
+            refreshLabel.textContent =
+                "Reading...";
+        }
 
-        lastUpdate.textContent =
-            "Reading sensors...";
+        if (refreshIcon) {
+            refreshIcon.textContent =
+                "↻";
+        }
 
+        if (lastUpdate) {
 
-        sensorStatus.textContent =
-            "READING";
+            lastUpdate.textContent =
+                "Reading sensors...";
+        }
+
+        if (sensorStatus) {
+
+            sensorStatus.textContent =
+                "READING";
+        }
 
 
         try {
@@ -1199,38 +1217,57 @@
                 await getSensorData();
 
 
+            /*
+             * Validate basic response.
+             */
+
+            if (
+                !data ||
+                typeof data !== "object"
+            ) {
+                throw new Error(
+                    "Server returned an invalid hardware status response."
+                );
+            }
+
+
+            /*
+             * Render data.
+             */
+
             renderSensors(
                 data.temperatures
             );
-
-
-            renderHardware(
-                data.hardware
-            );
-
 
             renderSystem(
                 data
             );
 
+            updateHealth(
+                data
+            );
 
-            if (LOCAL_DEVELOPMENT) {
+
+            /*
+             * Server state.
+             */
+
+            if (serverStatus) {
 
                 serverStatus.textContent =
-                    "LOCAL TEST";
-
-            } else {
-
-                serverStatus.textContent =
-                    "ONLINE";
-
+                    LOCAL_DEVELOPMENT
+                        ? "LOCAL TEST"
+                        : "ONLINE";
             }
 
 
-            lastUpdate.textContent =
-                "Updated " +
-                new Date()
-                    .toLocaleTimeString();
+            if (lastUpdate) {
+
+                lastUpdate.textContent =
+                    "Updated " +
+                    new Date()
+                        .toLocaleTimeString();
+            }
 
 
         } catch (error) {
@@ -1241,71 +1278,135 @@
             );
 
 
-            sensorGrid.innerHTML = `
-                <div class="loading">
+            if (sensorGrid) {
 
-                    🦊
+                sensorGrid.innerHTML = `
+                    <div class="loading loading-error">
 
-                    <span>
-                        ${escapeHtml(
-                            error.message
-                        )}
-                    </span>
+                        <div class="loading-fox">
+                            🦊
+                        </div>
 
-                </div>
-            `;
+                        <span>
+                            ${escapeHtml(
+                                error?.message ||
+                                "Unknown sensor error."
+                            )}
+                        </span>
 
-
-            sensorStatus.textContent =
-                "ERROR";
-
-
-            serverStatus.textContent =
-                LOCAL_DEVELOPMENT
-                    ? "LOCAL TEST"
-                    : "ERROR";
+                    </div>
+                `;
+            }
 
 
-            memoryStatus.textContent =
-                "ERROR";
+            if (sensorStatus) {
+                sensorStatus.textContent =
+                    "ERROR";
+            }
+
+            if (serverStatus) {
+
+                serverStatus.textContent =
+                    LOCAL_DEVELOPMENT
+                        ? "LOCAL TEST"
+                        : "ERROR";
+            }
+
+            if (memoryStatus) {
+                memoryStatus.textContent =
+                    "ERROR";
+            }
+
+            if (swapStatus) {
+                swapStatus.textContent =
+                    "ERROR";
+            }
+
+            if (loadStatus) {
+                loadStatus.textContent =
+                    "ERROR";
+            }
+
+            if (uptimeStatus) {
+                uptimeStatus.textContent =
+                    "ERROR";
+            }
 
 
-            swapStatus.textContent =
-                "ERROR";
+            setMetricBar(
+                memoryBar,
+                0
+            );
 
-
-            loadStatus.textContent =
-                "ERROR";
-
-
-            uptimeStatus.textContent =
-                "ERROR";
-
-
-            /*
-             * Hardware section
-             * also gets a clean failure state.
-             */
-
-            renderHardware(
-                null
+            setMetricBar(
+                swapBar,
+                0
             );
 
 
-            lastUpdate.textContent =
-                "Sensor read failed";
+            /*
+             * Health error state.
+             */
+
+            if (healthBanner) {
+
+                healthBanner.classList.remove(
+                    "health-loading",
+                    "health-healthy",
+                    "health-warning",
+                    "health-critical"
+                );
+
+                healthBanner.classList.add(
+                    "health-error"
+                );
+            }
+
+            if (healthTitle) {
+                healthTitle.textContent =
+                    "SYSTEM STATUS ERROR";
+            }
+
+            if (healthMessage) {
+                healthMessage.textContent =
+                    error?.message ||
+                    "Unable to read server hardware status.";
+            }
+
+            if (healthState) {
+                healthState.textContent =
+                    "ERROR";
+            }
+
+
+            if (lastUpdate) {
+
+                lastUpdate.textContent =
+                    "Sensor read failed";
+            }
+
 
         } finally {
+
+            requestInFlight =
+                false;
 
             if (refreshButton) {
 
                 refreshButton.disabled =
                     false;
-
             }
 
-        }
+            if (refreshLabel) {
+                refreshLabel.textContent =
+                    "Refresh";
+            }
 
+            if (refreshIcon) {
+                refreshIcon.textContent =
+                    "↻";
+            }
+        }
     }
 
 
@@ -1321,25 +1422,18 @@
             "click",
             loadTemperatures
         );
-
     }
 
 
     /*
-	 * ---------------------------------------------------------
-	 * AUTO REFRESH
-	 * ---------------------------------------------------------
-	 */
-
-	initializeRefreshSettings();
-	startAutoRefresh();
-
-
-    /*
      * ---------------------------------------------------------
-     * INITIAL LOAD
+     * STARTUP
      * ---------------------------------------------------------
      */
+
+    initializeRefreshSettings();
+
+    startAutoRefresh();
 
     loadTemperatures();
 

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html
     lang="en"
     data-addon-id="fluffy-fox-status"
@@ -30,7 +31,9 @@
 <div class="container">
 
 
-    <!-- HEADER -->
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
 
     <header>
 
@@ -53,7 +56,9 @@
     </header>
 
 
-    <!-- OVERALL HEALTH -->
+    <!-- =====================================================
+         OVERALL HEALTH
+         ===================================================== -->
 
     <section
         id="health-banner"
@@ -86,7 +91,9 @@
     </section>
 
 
-    <!-- TEMPERATURES -->
+    <!-- =====================================================
+         TEMPERATURES
+         ===================================================== -->
 
     <section class="status-card">
 
@@ -160,7 +167,9 @@
 
         <div class="update-meta">
 
-            <label for="refresh-interval">
+            <label
+                for="refresh-interval"
+            >
                 Refresh
             </label>
 
@@ -173,7 +182,10 @@
                     Manual
                 </option>
 
-                <option value="5000" selected>
+                <option
+                    value="5000"
+                    selected
+                >
                     5 seconds
                 </option>
 
@@ -204,7 +216,9 @@
     </section>
 
 
-    <!-- HOST HARDWARE -->
+    <!-- =====================================================
+         HOST HARDWARE
+         ===================================================== -->
 
     <section class="status-card">
 
@@ -223,7 +237,7 @@
                     </h2>
 
                     <span class="section-subtitle">
-                        CPU and storage hardware information
+                        Hardware information exposed by Dune Core
                     </span>
 
                 </div>
@@ -233,158 +247,70 @@
         </div>
 
 
-        <div class="hardware-grid">
+        <div class="system-grid">
 
-            <!--
-            ============================================================
-            CPU CARD DISABLED
-            Core server.hardware.status currently does not expose
-            hardware.cpu.
-            ============================================================
-
-            <div
-                id="cpu-card"
-                class="hardware-item"
-            >
+            <div class="system-item">
 
                 <div class="metric-top">
 
                     <span class="metric-icon">
-                        🧠
+                        🖥️
                     </span>
 
                     <span class="label">
-                        CPU
+                        Hardware API
                     </span>
 
                 </div>
 
-                <strong
-                    id="cpu-model"
-                    class="hardware-model"
+                <span
+                    class="value online"
                 >
-                    WAITING
-                </strong>
+                    ACTIVE
+                </span>
 
-                <div class="hardware-details">
-
-                    <span id="cpu-topology">
-                        Cores / Threads: WAITING
-                    </span>
-
-                    <span id="cpu-clock">
-                        Clock: WAITING
-                    </span>
-
-                    <span id="cpu-temperature">
-                        Temperature: WAITING
-                    </span>
-
-                </div>
+                <span class="metric-hint">
+                    server.hardware.status
+                </span>
 
             </div>
-            -->
 
 
-            <!--
-            ============================================================
-            NVMe CARD DISABLED
-            Core server.hardware.status currently does not expose
-            hardware.nvme.
-            ============================================================
-
-            <div
-                id="nvme-card"
-                class="hardware-item"
-            >
+            <div class="system-item">
 
                 <div class="metric-top">
 
                     <span class="metric-icon">
-                        ⚡
+                        🌡️
                     </span>
 
                     <span class="label">
-                        NVMe
+                        Temperature Source
                     </span>
 
                 </div>
 
-                <strong
-                    id="nvme-model"
-                    class="hardware-model"
+                <span
+                    id="hardware-temperature-status"
+                    class="value"
                 >
-                    WAITING
-                </strong>
+                    LIVE
+                </span>
 
-                <div class="hardware-details">
-
-                    <span id="nvme-temperature">
-                        Temperature: WAITING
-                    </span>
-
-                    <span id="nvme-capacity">
-                        Capacity: WAITING
-                    </span>
-
-                </div>
+                <span class="metric-hint">
+                    Provided by Dune Core
+                </span>
 
             </div>
-            -->
-
-
-            <!--
-            ============================================================
-            SSD CARD DISABLED
-            Core server.hardware.status currently does not expose
-            hardware.ssd.
-            ============================================================
-
-            <div
-                id="ssd-card"
-                class="hardware-item"
-            >
-
-                <div class="metric-top">
-
-                    <span class="metric-icon">
-                        💾
-                    </span>
-
-                    <span class="label">
-                        SSD
-                    </span>
-
-                </div>
-
-                <strong
-                    id="ssd-model"
-                    class="hardware-model"
-                >
-                    WAITING
-                </strong>
-
-                <div class="hardware-details">
-
-                    <span id="ssd-temperature">
-                        Temperature: WAITING
-                    </span>
-
-                    <span id="ssd-capacity">
-                        Capacity: WAITING
-                    </span>
-
-                </div>
-
-            </div>
-            -->
 
         </div>
 
     </section>
 
 
-    <!-- SYSTEM STATUS -->
+    <!-- =====================================================
+         SYSTEM STATUS
+         ===================================================== -->
 
     <section class="status-card">
 
@@ -617,7 +543,9 @@
     </section>
 
 
-    <!-- FOOTER -->
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
 
     <footer>
 
@@ -626,7 +554,7 @@
         </span>
 
         <span>
-            UI Preview • v0.1.3
+            Dune Addon • v0.1.3
         </span>
 
     </footer>
@@ -635,7 +563,17 @@
 </div>
 
 
+<!-- =========================================================
+     DUNE BRIDGE
+     ========================================================= -->
+
 <script src="./dune-addon-bridge.js"></script>
+
+
+<!-- =========================================================
+     ADDON
+     ========================================================= -->
+
 <script src="./addon.js"></script>
 
 
