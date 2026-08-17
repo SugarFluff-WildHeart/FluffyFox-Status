@@ -946,81 +946,81 @@
         }
 
 
-        const cpu =
-            hardware.cpu;
+        //const cpu =
+        //    hardware.cpu;
 
 
-        const nvme =
-            hardware.nvme;
+        //const nvme =
+        //    hardware.nvme;
 
 
-        const ssd =
-            hardware.ssd;
+        //const ssd =
+        //    hardware.ssd;
 
 
-        if (cpu) {
+        //if (cpu) {
 
-            cpuModel.textContent =
-                cpu.model ||
-                "Unknown CPU";
-
-
-            cpuTopology.textContent =
-                `Cores / Threads: ` +
-                `${cpu.cores ?? "?"} / ` +
-                `${cpu.threads ?? "?"}`;
+        //    cpuModel.textContent =
+        //        cpu.model ||
+        //        "Unknown CPU";
 
 
-            cpuClock.textContent =
-                `Clock: ` +
-                `${cpu.clock_mhz ?? "?"} MHz`;
+        //    cpuTopology.textContent =
+        //        `Cores / Threads: ` +
+        //        `${cpu.cores ?? "?"} / ` +
+        //        `${cpu.threads ?? "?"}`;
 
 
-            cpuTemperature.textContent =
-                `Temperature: ` +
-                `${cpu.temperature ?? "?"} °C`;
-
-        }
+        //    cpuClock.textContent =
+        //        `Clock: ` +
+        //        `${cpu.clock_mhz ?? "?"} MHz`;
 
 
-        if (nvme) {
+        //    cpuTemperature.textContent =
+        //        `Temperature: ` +
+        //        `${cpu.temperature ?? "?"} °C`;
 
-            nvmeModel.textContent =
-                nvme.model ||
-                "Unknown NVMe";
-
-
-            nvmeTemperature.textContent =
-                `Temperature: ` +
-                `${nvme.temperature ?? "?"} °C`;
+        //}
 
 
-            nvmeCapacity.textContent =
-                `Capacity: ` +
-                `${nvme.capacity_gb ?? "?"} GB`;
+        //if (nvme) {
 
-        }
-
-
-        if (ssd) {
-
-            ssdModel.textContent =
-                ssd.model ||
-                "Unknown SSD";
+        //    nvmeModel.textContent =
+        //        nvme.model ||
+        //        "Unknown NVMe";
 
 
-            ssdTemperature.textContent =
-                `Temperature: ` +
-                `${ssd.temperature ?? "?"} °C`;
+        //    nvmeTemperature.textContent =
+        //        `Temperature: ` +
+        //        `${nvme.temperature ?? "?"} °C`;
 
 
-            ssdCapacity.textContent =
-                `Capacity: ` +
-                `${ssd.capacity_gb ?? "?"} GB`;
+        //    nvmeCapacity.textContent =
+        //        `Capacity: ` +
+        //        `${nvme.capacity_gb ?? "?"} GB`;
 
-        }
+        //}
 
-    }
+
+        //if (ssd) {
+
+        //    ssdModel.textContent =
+        //        ssd.model ||
+        //        "Unknown SSD";
+
+
+        //    ssdTemperature.textContent =
+        //        `Temperature: ` +
+        //        `${ssd.temperature ?? "?"} °C`;
+
+
+        //    ssdCapacity.textContent =
+        //        `Capacity: ` +
+        //        `${ssd.capacity_gb ?? "?"} GB`;
+
+        //}
+
+    //}
 
 
     /*

@@ -160,48 +160,46 @@
 
         <div class="update-meta">
 
-			<label for="refresh-interval">
-				Refresh
-			</label>
+            <label for="refresh-interval">
+                Refresh
+            </label>
 
-			<select
-				id="refresh-interval"
-				aria-label="Refresh interval"
-			>
-				<option value="0">
-					Manual
-				</option>
+            <select
+                id="refresh-interval"
+                aria-label="Refresh interval"
+            >
 
-				<option value="1000">
-					1 second
-				</option>
+                <option value="0">
+                    Manual
+                </option>
 
-				<option value="5000" selected>
-					5 seconds
-				</option>
+                <option value="5000" selected>
+                    5 seconds
+                </option>
 
-				<option value="10000">
-					10 seconds
-				</option>
+                <option value="10000">
+                    10 seconds
+                </option>
 
-				<option value="30000">
-					30 seconds
-				</option>
+                <option value="30000">
+                    30 seconds
+                </option>
 
-				<option value="60000">
-					60 seconds
-				</option>
-			</select>
+                <option value="60000">
+                    60 seconds
+                </option>
 
-			<span id="refresh-status">
-				● Auto-refresh enabled
-			</span>
+            </select>
 
-			<span id="refresh-interval-label">
-				Every 5 seconds
-			</span>
+            <span id="refresh-status">
+                ● Auto-refresh enabled
+            </span>
 
-		</div>
+            <span id="refresh-interval-label">
+                Every 5 seconds
+            </span>
+
+        </div>
 
     </section>
 
@@ -237,8 +235,12 @@
 
         <div class="hardware-grid">
 
-
-            <!-- CPU -->
+            <!--
+            ============================================================
+            CPU CARD DISABLED
+            Core server.hardware.status currently does not expose
+            hardware.cpu.
+            ============================================================
 
             <div
                 id="cpu-card"
@@ -281,9 +283,15 @@
                 </div>
 
             </div>
+            -->
 
 
-            <!-- NVME -->
+            <!--
+            ============================================================
+            NVMe CARD DISABLED
+            Core server.hardware.status currently does not expose
+            hardware.nvme.
+            ============================================================
 
             <div
                 id="nvme-card"
@@ -322,9 +330,15 @@
                 </div>
 
             </div>
+            -->
 
 
-            <!-- SSD -->
+            <!--
+            ============================================================
+            SSD CARD DISABLED
+            Core server.hardware.status currently does not expose
+            hardware.ssd.
+            ============================================================
 
             <div
                 id="ssd-card"
@@ -363,7 +377,7 @@
                 </div>
 
             </div>
-
+            -->
 
         </div>
 
