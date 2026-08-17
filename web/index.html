@@ -5,6 +5,7 @@
 >
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -12,19 +13,25 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Fluffy Fox Status</title>
+    <title>
+        Fluffy Fox Status
+    </title>
 
     <link
         rel="stylesheet"
         href="./addon.css"
     >
+
 </head>
+
 
 <body>
 
 <div class="container">
 
+
     <!-- HEADER -->
+
     <header>
 
         <div class="fox">
@@ -47,6 +54,7 @@
 
 
     <!-- OVERALL HEALTH -->
+
     <section
         id="health-banner"
         class="health-banner health-loading"
@@ -79,6 +87,7 @@
 
 
     <!-- TEMPERATURES -->
+
     <section class="status-card">
 
         <div class="status-header">
@@ -151,13 +160,210 @@
 
         <div class="update-meta">
 
-            <span>
-                ● Auto-refresh enabled
-            </span>
+			<label for="refresh-interval">
+				Refresh
+			</label>
 
-            <span>
-                Every 5 seconds
-            </span>
+			<select
+				id="refresh-interval"
+				aria-label="Refresh interval"
+			>
+				<option value="0">
+					Manual
+				</option>
+
+				<option value="1000">
+					1 second
+				</option>
+
+				<option value="5000" selected>
+					5 seconds
+				</option>
+
+				<option value="10000">
+					10 seconds
+				</option>
+
+				<option value="30000">
+					30 seconds
+				</option>
+
+				<option value="60000">
+					60 seconds
+				</option>
+			</select>
+
+			<span id="refresh-status">
+				● Auto-refresh enabled
+			</span>
+
+			<span id="refresh-interval-label">
+				Every 5 seconds
+			</span>
+
+		</div>
+
+    </section>
+
+
+    <!-- HOST HARDWARE -->
+
+    <section class="status-card">
+
+        <div class="section-title-row">
+
+            <div class="section-heading">
+
+                <span class="section-icon">
+                    🖥️
+                </span>
+
+                <div>
+
+                    <h2>
+                        Host Hardware
+                    </h2>
+
+                    <span class="section-subtitle">
+                        CPU and storage hardware information
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="hardware-grid">
+
+
+            <!-- CPU -->
+
+            <div
+                id="cpu-card"
+                class="hardware-item"
+            >
+
+                <div class="metric-top">
+
+                    <span class="metric-icon">
+                        🧠
+                    </span>
+
+                    <span class="label">
+                        CPU
+                    </span>
+
+                </div>
+
+                <strong
+                    id="cpu-model"
+                    class="hardware-model"
+                >
+                    WAITING
+                </strong>
+
+                <div class="hardware-details">
+
+                    <span id="cpu-topology">
+                        Cores / Threads: WAITING
+                    </span>
+
+                    <span id="cpu-clock">
+                        Clock: WAITING
+                    </span>
+
+                    <span id="cpu-temperature">
+                        Temperature: WAITING
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- NVME -->
+
+            <div
+                id="nvme-card"
+                class="hardware-item"
+            >
+
+                <div class="metric-top">
+
+                    <span class="metric-icon">
+                        ⚡
+                    </span>
+
+                    <span class="label">
+                        NVMe
+                    </span>
+
+                </div>
+
+                <strong
+                    id="nvme-model"
+                    class="hardware-model"
+                >
+                    WAITING
+                </strong>
+
+                <div class="hardware-details">
+
+                    <span id="nvme-temperature">
+                        Temperature: WAITING
+                    </span>
+
+                    <span id="nvme-capacity">
+                        Capacity: WAITING
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- SSD -->
+
+            <div
+                id="ssd-card"
+                class="hardware-item"
+            >
+
+                <div class="metric-top">
+
+                    <span class="metric-icon">
+                        💾
+                    </span>
+
+                    <span class="label">
+                        SSD
+                    </span>
+
+                </div>
+
+                <strong
+                    id="ssd-model"
+                    class="hardware-model"
+                >
+                    WAITING
+                </strong>
+
+                <div class="hardware-details">
+
+                    <span id="ssd-temperature">
+                        Temperature: WAITING
+                    </span>
+
+                    <span id="ssd-capacity">
+                        Capacity: WAITING
+                    </span>
+
+                </div>
+
+            </div>
+
 
         </div>
 
@@ -165,6 +371,7 @@
 
 
     <!-- SYSTEM STATUS -->
+
     <section class="status-card">
 
         <div class="section-title-row">
@@ -196,6 +403,7 @@
 
 
             <!-- SERVER -->
+
             <div
                 id="server-card"
                 class="system-item"
@@ -224,6 +432,7 @@
 
 
             <!-- SENSORS -->
+
             <div
                 id="sensor-status-card"
                 class="system-item"
@@ -252,6 +461,7 @@
 
 
             <!-- MEMORY -->
+
             <div
                 id="memory-card"
                 class="system-item metric-resource"
@@ -289,6 +499,7 @@
 
 
             <!-- SWAP -->
+
             <div
                 id="swap-card"
                 class="system-item metric-resource"
@@ -326,6 +537,7 @@
 
 
             <!-- LOAD -->
+
             <div
                 id="load-card"
                 class="system-item"
@@ -358,6 +570,7 @@
 
 
             <!-- UPTIME -->
+
             <div
                 id="uptime-card"
                 class="system-item"
@@ -391,6 +604,7 @@
 
 
     <!-- FOOTER -->
+
     <footer>
 
         <span>
@@ -398,16 +612,18 @@
         </span>
 
         <span>
-            UI Preview • v0.1.2
+            UI Preview • v0.1.3
         </span>
 
     </footer>
+
 
 </div>
 
 
 <script src="./dune-addon-bridge.js"></script>
 <script src="./addon.js"></script>
+
 
 </body>
 

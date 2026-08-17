@@ -7,6 +7,268 @@
         document.querySelector(
             "#sensor-grid"
         );
+		
+		/*
+		 * ---------------------------------------------------------
+		 * REFRESH SETTINGS
+		 * ---------------------------------------------------------
+		 */
+
+		const refreshIntervalSelect =
+			document.querySelector(
+				"#refresh-interval"
+			);
+
+		const refreshStatus =
+			document.querySelector(
+				"#refresh-status"
+			);
+
+		const refreshIntervalLabel =
+			document.querySelector(
+				"#refresh-interval-label"
+			);
+
+		const REFRESH_STORAGE_KEY =
+			"fluffyFox.refreshInterval";
+
+		const REFRESH_INTERVALS = [
+			0,
+			1000,
+			5000,
+			10000,
+			30000,
+			60000
+		];
+
+		const DEFAULT_REFRESH_INTERVAL = 5000;
+
+		let refreshTimer = null;
+
+
+		/*
+		 * ---------------------------------------------------------
+		 * GET REFRESH INTERVAL
+		 * ---------------------------------------------------------
+		 */
+
+		function getRefreshInterval() {
+
+			const stored =
+				Number(
+					localStorage.getItem(
+						REFRESH_STORAGE_KEY
+					)
+				);
+
+			if (
+				REFRESH_INTERVALS.includes(
+					stored
+				)
+			) {
+				return stored;
+			}
+
+			return DEFAULT_REFRESH_INTERVAL;
+		}
+
+
+		/*
+		 * ---------------------------------------------------------
+		 * FORMAT REFRESH INTERVAL
+		 * ---------------------------------------------------------
+		 */
+
+		function formatRefreshInterval(
+			interval
+		) {
+
+			if (interval === 0) {
+				return "Manual";
+			}
+
+			if (interval < 60000) {
+
+				const seconds =
+					interval / 1000;
+
+				return (
+					"Every " +
+					seconds +
+					" second" +
+					(
+						seconds === 1
+							? ""
+							: "s"
+					)
+				);
+
+			}
+
+			return "Every 60 seconds";
+		}
+
+
+		/*
+		 * ---------------------------------------------------------
+		 * UPDATE REFRESH UI
+		 * ---------------------------------------------------------
+		 */
+
+		function updateRefreshMeta(
+			interval
+		) {
+
+			if (refreshIntervalSelect) {
+
+				refreshIntervalSelect.value =
+					String(interval);
+
+			}
+
+			if (refreshStatus) {
+
+				refreshStatus.textContent =
+					interval === 0
+						? "● Auto-refresh disabled"
+						: "● Auto-refresh enabled";
+
+			}
+
+			if (refreshIntervalLabel) {
+
+				refreshIntervalLabel.textContent =
+					formatRefreshInterval(
+						interval
+					);
+
+			}
+
+		}
+
+
+		/*
+		 * ---------------------------------------------------------
+		 * START AUTO REFRESH
+		 * ---------------------------------------------------------
+		 */
+
+		function startAutoRefresh() {
+
+			/*
+			 * Always clear the previous timer first.
+			 *
+			 * This prevents multiple timers from
+			 * running if the user changes the setting.
+			 */
+
+			if (refreshTimer !== null) {
+
+				window.clearInterval(
+					refreshTimer
+				);
+
+				refreshTimer = null;
+
+			}
+
+			const interval =
+				getRefreshInterval();
+
+			updateRefreshMeta(
+				interval
+			);
+
+			/*
+			 * Manual mode.
+			 */
+
+			if (interval === 0) {
+				return;
+			}
+
+			/*
+			 * Start the new timer using the
+			 * existing hardware-loading function.
+			 */
+
+			refreshTimer =
+				window.setInterval(
+					loadTemperatures,
+					interval
+				);
+
+		}
+
+
+		/*
+		 * ---------------------------------------------------------
+		 * SET REFRESH INTERVAL
+		 * ---------------------------------------------------------
+		 */
+
+		function setRefreshInterval(
+			interval
+		) {
+
+			interval =
+				Number(interval);
+
+			if (
+				!REFRESH_INTERVALS.includes(
+					interval
+				)
+			) {
+
+				interval =
+					DEFAULT_REFRESH_INTERVAL;
+
+			}
+
+			localStorage.setItem(
+				REFRESH_STORAGE_KEY,
+				String(interval)
+			);
+
+			startAutoRefresh();
+
+		}
+
+
+		/*
+		 * ---------------------------------------------------------
+		 * INITIALIZE REFRESH SETTINGS
+		 * ---------------------------------------------------------
+		 */
+
+		function initializeRefreshSettings() {
+
+			if (!refreshIntervalSelect) {
+				return;
+			}
+
+			const interval =
+				getRefreshInterval();
+
+			refreshIntervalSelect.value =
+				String(interval);
+
+			refreshIntervalSelect.addEventListener(
+				"change",
+				function () {
+
+					setRefreshInterval(
+						this.value
+					);
+
+				}
+			);
+
+			updateRefreshMeta(
+				interval
+			);
+
+		}
 
 
     const lastUpdate =
@@ -57,6 +319,72 @@
         );
 
 
+    /*
+     * ---------------------------------------------------------
+     * HOST HARDWARE DOM
+     * ---------------------------------------------------------
+     */
+
+    const cpuModel =
+        document.querySelector(
+            "#cpu-model"
+        );
+
+
+    const cpuTopology =
+        document.querySelector(
+            "#cpu-topology"
+        );
+
+
+    const cpuClock =
+        document.querySelector(
+            "#cpu-clock"
+        );
+
+
+    const cpuTemperature =
+        document.querySelector(
+            "#cpu-temperature"
+        );
+
+
+    const nvmeModel =
+        document.querySelector(
+            "#nvme-model"
+        );
+
+
+    const nvmeTemperature =
+        document.querySelector(
+            "#nvme-temperature"
+        );
+
+
+    const nvmeCapacity =
+        document.querySelector(
+            "#nvme-capacity"
+        );
+
+
+    const ssdModel =
+        document.querySelector(
+            "#ssd-model"
+        );
+
+
+    const ssdTemperature =
+        document.querySelector(
+            "#ssd-temperature"
+        );
+
+
+    const ssdCapacity =
+        document.querySelector(
+            "#ssd-capacity"
+        );
+
+
     const LOCAL_DEVELOPMENT =
         window.parent === window;
 
@@ -77,6 +405,9 @@
      * directly in a normal browser.
      *
      * They are NEVER used when running inside Dune Console.
+     *
+     * The hardware object below is an addon-side preview
+     * schema. It is NOT assumed to be the real Core schema.
      */
 
     function getMockData() {
@@ -84,6 +415,7 @@
         return {
 
             version: 1,
+
 
             temperatures: [
 
@@ -119,33 +451,116 @@
 
             ],
 
-            memory: {
 
-                total_kb: 16777216,
-                available_kb: 8388608,
-                used_kb: 8388608,
-                percent: 50.0
+            /*
+             * LOCAL PREVIEW ONLY.
+             *
+             * These values are not read from Dune Core yet.
+             * They exist so the new UI can be previewed.
+             */
+
+            hardware: {
+
+                cpu: {
+
+                    model:
+                        "AMD Ryzen 7 5800X",
+
+                    cores:
+                        8,
+
+                    threads:
+                        16,
+
+                    clock_mhz:
+                        4200,
+
+                    temperature:
+                        47.0
+
+                },
+
+
+                nvme: {
+
+                    model:
+                        "Samsung SSD 980 PRO 2TB",
+
+                    capacity_gb:
+                        2000,
+
+                    temperature:
+                        38.0
+
+                },
+
+
+                ssd: {
+
+                    model:
+                        "Samsung SSD 870 EVO 500GB",
+
+                    capacity_gb:
+                        500,
+
+                    temperature:
+                        36.0
+
+                }
 
             },
+
+
+            memory: {
+
+                total_kb:
+                    16777216,
+
+                available_kb:
+                    8388608,
+
+                used_kb:
+                    8388608,
+
+                percent:
+                    50.0
+
+            },
+
 
             swap: {
 
-                total_kb: 4194304,
-                free_kb: 4194304,
-                used_kb: 0,
-                percent: 0.0
+                total_kb:
+                    4194304,
+
+                free_kb:
+                    4194304,
+
+                used_kb:
+                    0,
+
+                percent:
+                    0.0
 
             },
+
 
             load: {
 
-                one: 0.25,
-                five: 0.20,
-                fifteen: 0.18
+                one:
+                    0.25,
+
+                five:
+                    0.20,
+
+                fifteen:
+                    0.18
 
             },
 
-            uptime_seconds: 86400
+
+            uptime_seconds:
+                86400
 
         };
 
@@ -162,39 +577,65 @@
         temperature
     ) {
 
-        if (temperature >= 85) {
+        if (
+            temperature >= 85
+        ) {
 
             return {
-                name: "CRITICAL",
-                className: "critical"
+
+                name:
+                    "CRITICAL",
+
+                className:
+                    "critical"
+
             };
 
         }
 
 
-        if (temperature >= 75) {
+        if (
+            temperature >= 75
+        ) {
 
             return {
-                name: "HOT",
-                className: "hot"
+
+                name:
+                    "HOT",
+
+                className:
+                    "hot"
+
             };
 
         }
 
 
-        if (temperature >= 60) {
+        if (
+            temperature >= 60
+        ) {
 
             return {
-                name: "WARM",
-                className: "warm"
+
+                name:
+                    "WARM",
+
+                className:
+                    "warm"
+
             };
 
         }
 
 
         return {
-            name: "NORMAL",
-            className: "normal"
+
+            name:
+                "NORMAL",
+
+            className:
+                "normal"
+
         };
 
     }
@@ -262,10 +703,12 @@
 
 
         const units = [
+
             "KB",
             "MB",
             "GB",
             "TB"
+
         ];
 
 
@@ -283,6 +726,7 @@
         ) {
 
             value /= 1024;
+
             unit++;
 
         }
@@ -446,6 +890,141 @@
 
     /*
      * ---------------------------------------------------------
+     * RENDER HOST HARDWARE
+     * ---------------------------------------------------------
+     *
+     * IMPORTANT:
+     *
+     * This currently consumes the local preview schema.
+     *
+     * Once Captain confirms the actual
+     * server.hardware.status response, ONLY this function
+     * should need to be adapted to the real field names.
+     */
+
+    function renderHardware(
+        hardware
+    ) {
+
+        if (!hardware) {
+
+            cpuModel.textContent =
+                "NOT AVAILABLE";
+
+            cpuTopology.textContent =
+                "Cores / Threads: NOT AVAILABLE";
+
+            cpuClock.textContent =
+                "Clock: NOT AVAILABLE";
+
+            cpuTemperature.textContent =
+                "Temperature: NOT AVAILABLE";
+
+
+            nvmeModel.textContent =
+                "NOT AVAILABLE";
+
+            nvmeTemperature.textContent =
+                "Temperature: NOT AVAILABLE";
+
+            nvmeCapacity.textContent =
+                "Capacity: NOT AVAILABLE";
+
+
+            ssdModel.textContent =
+                "NOT AVAILABLE";
+
+            ssdTemperature.textContent =
+                "Temperature: NOT AVAILABLE";
+
+            ssdCapacity.textContent =
+                "Capacity: NOT AVAILABLE";
+
+
+            return;
+
+        }
+
+
+        const cpu =
+            hardware.cpu;
+
+
+        const nvme =
+            hardware.nvme;
+
+
+        const ssd =
+            hardware.ssd;
+
+
+        if (cpu) {
+
+            cpuModel.textContent =
+                cpu.model ||
+                "Unknown CPU";
+
+
+            cpuTopology.textContent =
+                `Cores / Threads: ` +
+                `${cpu.cores ?? "?"} / ` +
+                `${cpu.threads ?? "?"}`;
+
+
+            cpuClock.textContent =
+                `Clock: ` +
+                `${cpu.clock_mhz ?? "?"} MHz`;
+
+
+            cpuTemperature.textContent =
+                `Temperature: ` +
+                `${cpu.temperature ?? "?"} °C`;
+
+        }
+
+
+        if (nvme) {
+
+            nvmeModel.textContent =
+                nvme.model ||
+                "Unknown NVMe";
+
+
+            nvmeTemperature.textContent =
+                `Temperature: ` +
+                `${nvme.temperature ?? "?"} °C`;
+
+
+            nvmeCapacity.textContent =
+                `Capacity: ` +
+                `${nvme.capacity_gb ?? "?"} GB`;
+
+        }
+
+
+        if (ssd) {
+
+            ssdModel.textContent =
+                ssd.model ||
+                "Unknown SSD";
+
+
+            ssdTemperature.textContent =
+                `Temperature: ` +
+                `${ssd.temperature ?? "?"} °C`;
+
+
+            ssdCapacity.textContent =
+                `Capacity: ` +
+                `${ssd.capacity_gb ?? "?"} GB`;
+
+        }
+
+    }
+
+
+    /*
+     * ---------------------------------------------------------
      * RENDER SYSTEM
      * ---------------------------------------------------------
      */
@@ -561,11 +1140,12 @@
 
 
         /*
-		 * THIS IS THE REAL REQUEST.
-		 *
-		 * Hardware and system status is provided
-		 * by Dune Docker Core.
-		 */
+         * THIS IS THE REAL REQUEST.
+         *
+         * Hardware and system status is provided
+         * by Dune Docker Core.
+         */
+
         const result =
             await window.DuneAddon.request(
                 "server.hardware.status"
@@ -624,6 +1204,11 @@
             );
 
 
+            renderHardware(
+                data.hardware
+            );
+
+
             renderSystem(
                 data
             );
@@ -658,12 +1243,15 @@
 
             sensorGrid.innerHTML = `
                 <div class="loading">
+
                     🦊
+
                     <span>
                         ${escapeHtml(
                             error.message
                         )}
                     </span>
+
                 </div>
             `;
 
@@ -692,6 +1280,16 @@
 
             uptimeStatus.textContent =
                 "ERROR";
+
+
+            /*
+             * Hardware section
+             * also gets a clean failure state.
+             */
+
+            renderHardware(
+                null
+            );
 
 
             lastUpdate.textContent =
@@ -728,15 +1326,13 @@
 
 
     /*
-     * ---------------------------------------------------------
-     * AUTO REFRESH
-     * ---------------------------------------------------------
-     */
+	 * ---------------------------------------------------------
+	 * AUTO REFRESH
+	 * ---------------------------------------------------------
+	 */
 
-    window.setInterval(
-        loadTemperatures,
-        5000
-    );
+	initializeRefreshSettings();
+	startAutoRefresh();
 
 
     /*
@@ -756,5 +1352,6 @@
 
     window.loadTemperatures =
         loadTemperatures;
+
 
 })();
