@@ -561,22 +561,14 @@
 
 
         /*
-         * THIS IS THE REAL REQUEST.
-         *
-         * The Dune Console host must handle:
-         *
-         *     fluffyfox.sensors.read
-         *
-         * and execute:
-         *
-         *     runtime/fluffyfox-runtime.sh
-         *
-         * on the server.
-         */
-
+		 * THIS IS THE REAL REQUEST.
+		 *
+		 * Hardware and system status is provided
+		 * by Dune Docker Core.
+		 */
         const result =
             await window.DuneAddon.request(
-                "fluffyfox.sensors.read"
+                "server.hardware.status"
             );
 
 
