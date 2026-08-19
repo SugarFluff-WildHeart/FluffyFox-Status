@@ -1932,7 +1932,7 @@
      *
      * Manufacturer
      * Model
-     * Bus • Size
+     * Bus
      *
      * No fake Example labels.
      * =========================================================
@@ -2017,12 +2017,6 @@
                         );
 
 
-                    const size =
-                        getSizeBytes(
-                            item
-                        );
-
-
                     const primary =
 
                         friendly ??
@@ -2076,17 +2070,6 @@
                             String(bus)
                                 .toUpperCase()
 
-                        );
-
-                    }
-
-
-                    if (
-                        size !== null
-                    ) {
-
-                        details.push(
-                            formatBytes(size)
                         );
 
                     }
