@@ -827,10 +827,7 @@
                         "Samsung SSD 990 PRO 2TB",
 
                     bus:
-                        "nvme",
-
-                    size_bytes:
-                        2000398934016
+                        "nvme"
 
                 }
 
@@ -1409,29 +1406,6 @@
                 "product_name",
                 "productName",
                 "name"
-
-            ]
-
-        );
-
-    }
-
-
-    function getSizeBytes(
-        object
-    ) {
-
-        return firstValue(
-
-            object,
-
-            [
-
-                "size_bytes",
-                "sizeBytes",
-                "capacity_bytes",
-                "capacityBytes",
-                "bytes"
 
             ]
 
