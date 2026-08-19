@@ -808,10 +808,7 @@
                         "CT250MX500SSD1",
 
                     bus:
-                        "sata",
-
-                    size_bytes:
-                        250059350016
+                        "sata"
 
                 },
 
