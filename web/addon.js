@@ -1,5 +1,4 @@
 (function () {
-
     "use strict";
 
     /*
@@ -7,122 +6,121 @@
      * FLUFFY FOX STATUS
      * =========================================================
      *
-     * Front-end UI for the Dune addon.
+     * Hardware Status Bridge V2
      *
-     * IMPORTANT:
+     * V2 provides:
+     *   - temperatures
+     *   - CPU identification
+     *   - storage identification
+     *   - memory
+     *   - swap
+     *   - load
+     *   - uptime
      *
-     * Real hardware/system information comes from:
+     * Network hardware identification is NOT part of V2.
      *
-     *     server.hardware.status
+     * Network-related temperature sensors are still supported
+     * through local driver-name mapping. This is display-only
+     * inference from the temperature sensor name.
      *
-     * The old FluffyFox.Sensor.read API is NOT used here.
-     *
+     * Hardware identifiers are never invented.
      * =========================================================
      */
 
+    /*
+     * =========================================================
+     * DOM HELPERS
+     * =========================================================
+     */
+
+    const $ = function (selector) {
+        return document.querySelector(selector);
+    };
+
 
     /*
-     * ---------------------------------------------------------
-     * DOM
-     * ---------------------------------------------------------
+     * =========================================================
+     * DOM REFERENCES
+     * =========================================================
      */
 
     const sensorGrid =
-        document.querySelector("#sensor-grid");
+        $("#sensor-grid");
 
     const lastUpdate =
-        document.querySelector("#last-update");
+        $("#last-update");
 
     const refreshButton =
-        document.querySelector("#refresh-button");
+        $("#refresh-button");
 
-    const refreshLabel =
-        document.querySelector("#refresh-label");
-
-    const refreshIcon =
-        document.querySelector("#refresh-icon");
-
-    const serverStatus =
-        document.querySelector("#server-status");
-
-    const sensorStatus =
-        document.querySelector("#sensor-status");
-
-    const memoryStatus =
-        document.querySelector("#memory-status");
-
-    const swapStatus =
-        document.querySelector("#swap-status");
-
-    const loadStatus =
-        document.querySelector("#load-status");
-
-    const uptimeStatus =
-        document.querySelector("#uptime-status");
-
-    const memoryBar =
-        document.querySelector("#memory-bar");
-
-    const swapBar =
-        document.querySelector("#swap-bar");
-
-    const healthBanner =
-        document.querySelector("#health-banner");
-
-    const healthTitle =
-        document.querySelector("#health-title");
-
-    const healthMessage =
-        document.querySelector("#health-message");
-
-    const healthState =
-        document.querySelector("#health-state");
-
-
-    /*
-     * ---------------------------------------------------------
-     * REFRESH SETTINGS
-     * ---------------------------------------------------------
-     */
-
-    const refreshIntervalSelect =
-        document.querySelector(
-            "#refresh-interval"
-        );
+    const refreshInterval =
+        $("#refresh-interval");
 
     const refreshStatus =
-        document.querySelector(
-            "#refresh-status"
-        );
+        $("#refresh-status");
 
     const refreshIntervalLabel =
-        document.querySelector(
-            "#refresh-interval-label"
-        );
+        $("#refresh-interval-label");
 
-    const REFRESH_STORAGE_KEY =
-        "fluffyFox.refreshInterval";
+    const serverStatus =
+        $("#server-status");
 
-    const REFRESH_INTERVALS = [
-        0,
-        5000,
-        10000,
-        30000,
-        60000
-    ];
+    const sensorStatus =
+        $("#sensor-status");
 
-    const DEFAULT_REFRESH_INTERVAL =
-        5000;
+    const memoryStatus =
+        $("#memory-status");
 
-    let refreshTimer = null;
+    const swapStatus =
+        $("#swap-status");
 
-    let requestInFlight = false;
+    const loadStatus =
+        $("#load-status");
+
+    const uptimeStatus =
+        $("#uptime-status");
+
+    const memoryBar =
+        $("#memory-bar");
+
+    const swapBar =
+        $("#swap-bar");
+
+    const hardwareApiStatus =
+        $("#hardware-api-status");
+
+    const hardwareTemperatureStatus =
+        $("#hardware-temperature-status");
+
+    const hardwareBridgeVersion =
+        $("#hardware-bridge-version");
+
+    const hardwareBridgeDetail =
+        $("#hardware-bridge-detail");
+
+    const hardwareSensorCount =
+        $("#hardware-sensor-count");
+
+    const cpuInfo =
+        $("#cpu-info");
+
+    const cpuInfoDetail =
+        $("#cpu-info-detail");
+
+    const memoryInfo =
+        $("#memory-info");
+
+    const memoryInfoDetail =
+        $("#memory-info-detail");
+
+    const storageInfo =
+        $("#storage-info");
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * ENVIRONMENT
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     const LOCAL_DEVELOPMENT =
@@ -131,239 +129,646 @@
     const HAS_DUNE_BRIDGE =
         !LOCAL_DEVELOPMENT &&
         window.DuneAddon &&
-        typeof window.DuneAddon.request === "function";
+        typeof window.DuneAddon.request ===
+            "function";
 
 
     /*
-     * ---------------------------------------------------------
-     * REFRESH INTERVAL
-     * ---------------------------------------------------------
+     * =========================================================
+     * EXACT SENSOR DISPLAY MAP
+     * =========================================================
+     *
+     * These are exact known names.
+     *
+     * Driver-family fallbacks are handled below.
+     * =========================================================
      */
 
-    function getRefreshInterval() {
+    const SENSOR_DISPLAY_MAP = {
 
-        const stored =
-            Number(
-                localStorage.getItem(
-                    REFRESH_STORAGE_KEY
-                )
-            );
+        /*
+         * ACPI
+         */
+
+        "acpitz Sensor 1":
+            "ACPI Thermal Zone",
+
+        "acpitz Sensor 2":
+            "ACPI Thermal Zone 2",
+
+
+        /*
+         * CPU
+         */
+
+        "coretemp Package id 0":
+            "CPU Package",
+
+        "coretemp Package id 1":
+            "CPU Package 2",
+
+        "coretemp Core 0":
+            "CPU Core 0",
+
+        "coretemp Core 1":
+            "CPU Core 1",
+
+        "coretemp Core 2":
+            "CPU Core 2",
+
+        "coretemp Core 3":
+            "CPU Core 3",
+
+        "coretemp Core 4":
+            "CPU Core 4",
+
+        "coretemp Core 5":
+            "CPU Core 5",
+
+        "coretemp Core 6":
+            "CPU Core 6",
+
+        "coretemp Core 7":
+            "CPU Core 7"
+
+    };
+
+
+    /*
+     * =========================================================
+     * SENSOR DRIVER DISPLAY MAP
+     * =========================================================
+     *
+     * DISPLAY-ONLY.
+     *
+     * We do NOT claim that a driver name is a persistent
+     * hardware identifier.
+     *
+     * Unknown drivers simply fall back to their original name.
+     * =========================================================
+     */
+
+    const SENSOR_DRIVER_MAP = [
+
+        /*
+         * -----------------------------------------------------
+         * REALTEK NETWORK
+         * -----------------------------------------------------
+         */
+
+        {
+            pattern:
+                /^r8169(?:[_\s:-]|$)/i,
+
+            label:
+                "Realtek Network Adapter"
+        },
+
+        {
+            pattern:
+                /^r8168(?:[_\s:-]|$)/i,
+
+            label:
+                "Realtek Network Adapter"
+        },
+
+        {
+            pattern:
+                /^r8125(?:[_\s:-]|$)/i,
+
+            label:
+                "Realtek Network Adapter"
+        },
+
+        {
+            pattern:
+                /^r8152(?:[_\s:-]|$)/i,
+
+            label:
+                "Realtek Network Adapter"
+        },
+
+
+        /*
+         * -----------------------------------------------------
+         * BROADCOM NETWORK
+         * -----------------------------------------------------
+         */
+
+        {
+            pattern:
+                /^tg3(?:[_\s:-]|$)/i,
+
+            label:
+                "Broadcom Network Adapter"
+        },
+
+        {
+            pattern:
+                /^bnx2(?:[_\s:-]|$)/i,
+
+            label:
+                "Broadcom Network Adapter"
+        },
+
+        {
+            pattern:
+                /^bnxt_en(?:[_\s:-]|$)/i,
+
+            label:
+                "Broadcom Network Adapter"
+        },
+
+
+        /*
+         * -----------------------------------------------------
+         * INTEL NETWORK
+         * -----------------------------------------------------
+         */
+
+        {
+            pattern:
+                /^igc(?:[_\s:-]|$)/i,
+
+            label:
+                "Intel Network Adapter"
+        },
+
+        {
+            pattern:
+                /^igb(?:[_\s:-]|$)/i,
+
+            label:
+                "Intel Network Adapter"
+        },
+
+        {
+            pattern:
+                /^e1000e(?:[_\s:-]|$)/i,
+
+            label:
+                "Intel Network Adapter"
+        },
+
+        {
+            pattern:
+                /^ixgbe(?:[_\s:-]|$)/i,
+
+            label:
+                "Intel Network Adapter"
+        },
+
+        {
+            pattern:
+                /^i40e(?:[_\s:-]|$)/i,
+
+            label:
+                "Intel Network Adapter"
+        },
+
+        {
+            pattern:
+                /^ice(?:[_\s:-]|$)/i,
+
+            label:
+                "Intel Network Adapter"
+        },
+
+
+        /*
+         * -----------------------------------------------------
+         * MELLANOX / NVIDIA NETWORK
+         * -----------------------------------------------------
+         */
+
+        {
+            pattern:
+                /^mlx4/i,
+
+            label:
+                "Mellanox Network Adapter"
+        },
+
+        {
+            pattern:
+                /^mlx5/i,
+
+            label:
+                "Mellanox Network Adapter"
+        },
+
+
+        /*
+         * -----------------------------------------------------
+         * MARVELL / AQUANTIA NETWORK
+         * -----------------------------------------------------
+         */
+
+        {
+            pattern:
+                /^atlantic(?:[_\s:-]|$)/i,
+
+            label:
+                "Aquantia / Marvell Network Adapter"
+        },
+
+        {
+            pattern:
+                /^sky2(?:[_\s:-]|$)/i,
+
+            label:
+                "Marvell Network Adapter"
+        },
+
+
+        /*
+         * -----------------------------------------------------
+         * QUALCOMM / ATHEROS NETWORK
+         * -----------------------------------------------------
+         */
+
+        {
+            pattern:
+                /^alx(?:[_\s:-]|$)/i,
+
+            label:
+                "Qualcomm / Atheros Network Adapter"
+        },
+
+
+        /*
+         * -----------------------------------------------------
+         * NVIDIA / AMD GPU TEMPERATURE
+         * -----------------------------------------------------
+         *
+         * Driver family only.
+         * GPU model is NOT inferred.
+         * -----------------------------------------------------
+         */
+
+        {
+            pattern:
+                /^amdgpu(?:[_\s:-]|$)/i,
+
+            label:
+                "AMD GPU"
+        },
+
+        {
+            pattern:
+                /^nouveau(?:[_\s:-]|$)/i,
+
+            label:
+                "NVIDIA GPU"
+        },
+
+
+        /*
+         * -----------------------------------------------------
+         * INTEL GPU TEMPERATURE
+         * -----------------------------------------------------
+         */
+
+        {
+            pattern:
+                /^i915(?:[_\s:-]|$)/i,
+
+            label:
+                "Intel GPU"
+        },
+
+
+        /*
+         * -----------------------------------------------------
+         * NVME
+         * -----------------------------------------------------
+         */
+
+        {
+            pattern:
+                /^nvme(?:[_\s:-]|$)/i,
+
+            label:
+                "NVMe"
+        },
+
+
+        /*
+         * -----------------------------------------------------
+         * AMD CPU TEMPERATURE
+         * -----------------------------------------------------
+         */
+
+        {
+            pattern:
+                /^k10temp(?:[_\s:-]|$)/i,
+
+            label:
+                "AMD CPU"
+        },
+
+        {
+            pattern:
+                /^zenpower(?:[_\s:-]|$)/i,
+
+            label:
+                "AMD CPU"
+        }
+
+    ];
+
+
+    /*
+     * =========================================================
+     * SENSOR DISPLAY NAME
+     * =========================================================
+     */
+
+    function getSensorDisplayName(sensor) {
+
+        const rawName =
+            typeof sensor === "string"
+                ? sensor
+                : (
+                    sensor &&
+                    (
+                        sensor.name ??
+                        sensor.label ??
+                        sensor.sensor ??
+                        sensor.id
+                    )
+                );
+
+
+        if (!rawName) {
+            return "Unknown Sensor";
+        }
+
+
+        const name =
+            String(rawName).trim();
+
+
+        /*
+         * -----------------------------------------------------
+         * BRIDGE-PROVIDED FRIENDLY NAME
+         * -----------------------------------------------------
+         */
 
         if (
-            REFRESH_INTERVALS.includes(
-                stored
+            sensor &&
+            typeof sensor === "object"
+        ) {
+
+            const friendlyName =
+                sensor.display_name ??
+                sensor.displayName ??
+                sensor.friendly_name ??
+                sensor.friendlyName;
+
+
+            if (
+                typeof friendlyName === "string" &&
+                friendlyName.trim()
+            ) {
+
+                return friendlyName.trim();
+
+            }
+
+        }
+
+
+        /*
+         * -----------------------------------------------------
+         * EXACT LOCAL MAP
+         * -----------------------------------------------------
+         */
+
+        if (
+            Object.prototype.hasOwnProperty.call(
+                SENSOR_DISPLAY_MAP,
+                name
             )
         ) {
-            return stored;
+
+            return SENSOR_DISPLAY_MAP[name];
+
         }
 
-        return DEFAULT_REFRESH_INTERVAL;
-    }
+
+        /*
+         * -----------------------------------------------------
+         * CORETEMP PACKAGE FALLBACK
+         * -----------------------------------------------------
+         *
+         * IMPORTANT:
+         *
+         * This MUST happen before the generic driver map.
+         * Otherwise "coretemp Core N" would be caught by a
+         * generic coretemp family rule.
+         *
+         * This handles any package number dynamically.
+         * -----------------------------------------------------
+         */
+
+        const packageMatch =
+            name.match(
+                /^coretemp\s+Package\s+id\s+(\d+)$/i
+            );
 
 
-    function formatRefreshInterval(
-        interval
-    ) {
+        if (packageMatch) {
 
-        if (interval === 0) {
-            return "Manual";
-        }
+            const packageId =
+                Number(
+                    packageMatch[1]
+                );
 
-        if (interval < 60000) {
 
-            const seconds =
-                interval / 1000;
+            if (
+                packageId === 0
+            ) {
+
+                return "CPU Package";
+
+            }
+
 
             return (
-                "Every " +
-                seconds +
-                " second" +
-                (
-                    seconds === 1
-                        ? ""
-                        : "s"
-                )
-            );
-        }
-
-        return "Every 60 seconds";
-    }
-
-
-    function updateRefreshMeta(
-        interval
-    ) {
-
-        if (refreshIntervalSelect) {
-
-            refreshIntervalSelect.value =
-                String(interval);
-        }
-
-        if (refreshStatus) {
-
-            refreshStatus.textContent =
-                interval === 0
-                    ? "● Auto-refresh disabled"
-                    : "● Auto-refresh enabled";
-        }
-
-        if (refreshIntervalLabel) {
-
-            refreshIntervalLabel.textContent =
-                formatRefreshInterval(
-                    interval
-                );
-        }
-    }
-
-
-    function startAutoRefresh() {
-
-        if (refreshTimer !== null) {
-
-            window.clearInterval(
-                refreshTimer
+                "CPU Package " +
+                (packageId + 1)
             );
 
-            refreshTimer = null;
         }
 
-        const interval =
-            getRefreshInterval();
 
-        updateRefreshMeta(
-            interval
-        );
+        /*
+         * -----------------------------------------------------
+         * CORETEMP CORE FALLBACK
+         * -----------------------------------------------------
+         *
+         * Handles any CPU core number.
+         *
+         * Examples:
+         *
+         * coretemp Core 0
+         * coretemp Core 7
+         * coretemp Core 15
+         * coretemp Core 31
+         * coretemp Core 63
+         * -----------------------------------------------------
+         */
 
-        if (interval === 0) {
-            return;
-        }
-
-        refreshTimer =
-            window.setInterval(
-                function () {
-
-                    /*
-                     * Do not stack requests.
-                     *
-                     * If the previous request is still
-                     * running, wait for the next interval.
-                     */
-
-                    if (!requestInFlight) {
-                        loadTemperatures();
-                    }
-
-                },
-                interval
+        const coreMatch =
+            name.match(
+                /^coretemp\s+Core\s+(\d+)$/i
             );
-    }
 
 
-    function setRefreshInterval(
-        interval
-    ) {
+        if (coreMatch) {
 
-        interval =
-            Number(interval);
+            return (
+                "CPU Core " +
+                coreMatch[1]
+            );
+
+        }
+
+
+        /*
+         * -----------------------------------------------------
+         * ACPI FALLBACK
+         * -----------------------------------------------------
+         */
 
         if (
-            !REFRESH_INTERVALS.includes(
-                interval
-            )
+            name
+                .toLowerCase()
+                .startsWith("acpitz")
         ) {
-            interval =
-                DEFAULT_REFRESH_INTERVAL;
-        }
 
-        localStorage.setItem(
-            REFRESH_STORAGE_KEY,
-            String(interval)
-        );
-
-        startAutoRefresh();
-    }
+            const acpiMatch =
+                name.match(
+                    /Sensor\s+(\d+)/i
+                );
 
 
-    function initializeRefreshSettings() {
+            if (
+                acpiMatch
+            ) {
 
-        if (!refreshIntervalSelect) {
-            return;
-        }
+                const sensorNumber =
+                    Number(
+                        acpiMatch[1]
+                    );
 
-        const interval =
-            getRefreshInterval();
 
-        refreshIntervalSelect.value =
-            String(interval);
+                if (
+                    sensorNumber === 1
+                ) {
 
-        refreshIntervalSelect.addEventListener(
-            "change",
-            function () {
+                    return "ACPI Thermal Zone";
 
-                setRefreshInterval(
-                    this.value
+                }
+
+
+                return (
+                    "ACPI Thermal Zone " +
+                    sensorNumber
                 );
 
             }
-        );
 
-        updateRefreshMeta(
-            interval
-        );
+
+            return "ACPI Thermal Zone";
+
+        }
+
+
+        /*
+         * -----------------------------------------------------
+         * DRIVER / FAMILY MAP
+         * -----------------------------------------------------
+         *
+         * This comes AFTER specific CPU/ACPI matching.
+         *
+         * That is the actual fix in this version.
+         * -----------------------------------------------------
+         */
+
+        for (
+            const entry of SENSOR_DRIVER_MAP
+        ) {
+
+            if (
+                entry.pattern.test(name)
+            ) {
+
+                return entry.label;
+
+            }
+
+        }
+
+
+        /*
+         * -----------------------------------------------------
+         * UNKNOWN
+         * -----------------------------------------------------
+         *
+         * Never destroy information we don't understand.
+         * -----------------------------------------------------
+         */
+
+        return name;
+
     }
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
      * LOCAL DEVELOPMENT MOCK
-     * ---------------------------------------------------------
+     * =========================================================
      *
      * Used only when index.html is opened directly.
      *
-     * Never used inside Dune Console.
+     * No Network hardware object is included.
+     *
+     * Network driver examples exist ONLY as temperature
+     * sensors so the mapping can be tested.
+     * =========================================================
      */
 
     function getMockData() {
 
         return {
 
-            version: 1,
+            version:
+                2,
 
-            temperatures: [
 
-                {
-                    name: "CPU",
-                    temperature: 47.0
-                },
+            /*
+             * CPU
+             */
 
-                {
-                    name: "CPU Package",
-                    temperature: 49.0
-                },
+            cpu: {
 
-                {
-                    name: "System",
-                    temperature: 34.0
-                },
+                id:
+                    "cpu:0",
 
-                {
-                    name: "NVMe",
-                    temperature: 38.0
-                },
+                manufacturer:
+                    "AMD",
 
-                {
-                    name: "SSD",
-                    temperature: 36.0
-                },
+                model:
+                    "Ryzen 9 5950X"
 
-                {
-                    name: "GPU",
-                    temperature: 42.0
-                }
+            },
 
-            ],
+
+            /*
+             * Memory
+             */
 
             memory: {
 
@@ -381,6 +786,155 @@
 
             },
 
+
+            /*
+             * Storage
+             */
+
+            storage: [
+
+                {
+
+                    id:
+                        "block:sda",
+
+                    name:
+                        "sda",
+
+                    manufacturer:
+                        "Crucial",
+
+                    model:
+                        "CT250MX500SSD1",
+
+                    bus:
+                        "sata",
+
+                    size_bytes:
+                        250059350016
+
+                },
+
+                {
+
+                    id:
+                        "block:nvme0n1",
+
+                    name:
+                        "nvme0n1",
+
+                    manufacturer:
+                        "Samsung",
+
+                    model:
+                        "Samsung SSD 990 PRO 2TB",
+
+                    bus:
+                        "nvme",
+
+                    size_bytes:
+                        2000398934016
+
+                }
+
+            ],
+
+
+            /*
+             * Temperatures.
+             */
+
+            temperatures: [
+
+                {
+
+                    name:
+                        "coretemp Package id 0",
+
+                    temperature:
+                        47.0,
+
+                    device_id:
+                        "cpu:0"
+
+                },
+
+                {
+
+                    name:
+                        "coretemp Core 0",
+
+                    temperature:
+                        45.0,
+
+                    device_id:
+                        "cpu:0"
+
+                },
+
+                {
+
+                    name:
+                        "coretemp Core 1",
+
+                    temperature:
+                        46.0,
+
+                    device_id:
+                        "cpu:0"
+
+                },
+
+                {
+
+                    name:
+                        "r8169_0_d00:00 Sensor 1",
+
+                    temperature:
+                        44.0
+
+                },
+
+                {
+
+                    name:
+                        "tg3 Sensor 1",
+
+                    temperature:
+                        47.0
+
+                },
+
+                {
+
+                    name:
+                        "nvme Composite",
+
+                    temperature:
+                        39.9,
+
+                    device_id:
+                        "block:nvme0n1"
+
+                },
+
+                {
+
+                    name:
+                        "acpitz Sensor 1",
+
+                    temperature:
+                        38.0
+
+                }
+
+            ],
+
+
+            /*
+             * Swap
+             */
+
             swap: {
 
                 total_kb:
@@ -397,6 +951,11 @@
 
             },
 
+
+            /*
+             * Load
+             */
+
             load: {
 
                 one:
@@ -410,17 +969,218 @@
 
             },
 
+
+            /*
+             * Uptime
+             */
+
             uptime_seconds:
                 86400
 
         };
+
     }
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
+     * HTML ESCAPE
+     * =========================================================
+     */
+
+    function escapeHtml(value) {
+
+        return String(
+            value ?? ""
+        )
+
+            .replaceAll(
+                "&",
+                "&amp;"
+            )
+
+            .replaceAll(
+                "<",
+                "&lt;"
+            )
+
+            .replaceAll(
+                ">",
+                "&gt;"
+            )
+
+            .replaceAll(
+                '"',
+                "&quot;"
+            )
+
+            .replaceAll(
+                "'",
+                "&#039;"
+            );
+
+    }
+
+
+    /*
+     * =========================================================
+     * FORMAT BYTES
+     * =========================================================
+     */
+
+    function formatBytes(bytes) {
+
+        const value =
+            Number(bytes);
+
+
+        if (
+            !Number.isFinite(value) ||
+            value < 0
+        ) {
+
+            return "Unknown";
+
+        }
+
+
+        if (
+            value === 0
+        ) {
+
+            return "0 B";
+
+        }
+
+
+        const units = [
+
+            "B",
+            "KB",
+            "MB",
+            "GB",
+            "TB",
+            "PB"
+
+        ];
+
+
+        let number =
+            value;
+
+        let unit =
+            0;
+
+
+        while (
+            number >= 1024 &&
+            unit <
+                units.length - 1
+        ) {
+
+            number /=
+                1024;
+
+            unit++;
+
+        }
+
+
+        return (
+
+            number.toFixed(
+
+                number >= 100
+                    ? 0
+                    : 1
+
+            ) +
+
+            " " +
+
+            units[unit]
+
+        );
+
+    }
+
+
+    /*
+     * =========================================================
+     * FORMAT KB
+     * =========================================================
+     */
+
+    function formatBytesFromKB(kb) {
+
+        return formatBytes(
+            Number(kb) * 1024
+        );
+
+    }
+
+
+    /*
+     * =========================================================
+     * FORMAT UPTIME
+     * =========================================================
+     */
+
+    function formatUptime(seconds) {
+
+        let value =
+            Math.max(
+                0,
+                Number(seconds) || 0
+            );
+
+
+        const days =
+            Math.floor(
+                value / 86400
+            );
+
+
+        value %=
+            86400;
+
+
+        const hours =
+            Math.floor(
+                value / 3600
+            );
+
+
+        value %=
+            3600;
+
+
+        const minutes =
+            Math.floor(
+                value / 60
+            );
+
+
+        return (
+
+            days +
+            "d " +
+
+            hours +
+            "h " +
+
+            minutes +
+            "m"
+
+        );
+
+    }
+
+
+    /*
+     * =========================================================
      * TEMPERATURE STATE
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     function getTemperatureState(
@@ -440,7 +1200,9 @@
                     "critical"
 
             };
+
         }
+
 
         if (
             temperature >= 75
@@ -455,7 +1217,9 @@
                     "hot"
 
             };
+
         }
+
 
         if (
             temperature >= 60
@@ -470,7 +1234,9 @@
                     "warm"
 
             };
+
         }
+
 
         return {
 
@@ -481,509 +1247,1124 @@
                 "normal"
 
         };
+
     }
 
 
     /*
-     * ---------------------------------------------------------
-     * HTML ESCAPE
-     * ---------------------------------------------------------
+     * =========================================================
+     * NORMALIZE SENSOR
+     * =========================================================
      */
 
-    function escapeHtml(
-        value
+    function normalizeSensor(
+        sensor
     ) {
-
-        return String(
-            value ?? ""
-        )
-            .replaceAll(
-                "&",
-                "&amp;"
-            )
-            .replaceAll(
-                "<",
-                "&lt;"
-            )
-            .replaceAll(
-                ">",
-                "&gt;"
-            )
-            .replaceAll(
-                '"',
-                "&quot;"
-            )
-            .replaceAll(
-                "'",
-                "&#039;"
-            );
-    }
-
-
-    /*
-     * ---------------------------------------------------------
-     * FORMAT
-     * ---------------------------------------------------------
-     */
-
-    function formatBytesFromKB(
-        kb
-    ) {
-
-        const valueKB =
-            Number(kb);
 
         if (
-            !Number.isFinite(valueKB) ||
-            valueKB < 0
-        ) {
-            return "UNKNOWN";
-        }
-
-        const units = [
-            "KB",
-            "MB",
-            "GB",
-            "TB"
-        ];
-
-        let value =
-            valueKB;
-
-        let unit =
-            0;
-
-        while (
-            value >= 1024 &&
-            unit < units.length - 1
+            typeof sensor === "string"
         ) {
 
-            value /= 1024;
+            return {
 
-            unit++;
+                name:
+                    sensor,
+
+                temperature:
+                    NaN
+
+            };
+
         }
 
-        return (
-            value.toFixed(1) +
-            " " +
-            units[unit]
-        );
-    }
-
-
-    function formatUptime(
-        seconds
-    ) {
-
-        seconds =
-            Math.max(
-                0,
-                Number(seconds) || 0
-            );
-
-        const days =
-            Math.floor(
-                seconds / 86400
-            );
-
-        seconds %= 86400;
-
-        const hours =
-            Math.floor(
-                seconds / 3600
-            );
-
-        seconds %= 3600;
-
-        const minutes =
-            Math.floor(
-                seconds / 60
-            );
-
-        return (
-            days +
-            "d " +
-            hours +
-            "h " +
-            minutes +
-            "m"
-        );
-    }
-
-
-    /*
-     * ---------------------------------------------------------
-     * SET BAR STATE
-     * ---------------------------------------------------------
-     */
-
-    function setMetricBar(
-        element,
-        percentage
-    ) {
-
-        if (!element) {
-            return;
-        }
-
-        let value =
-            Number(percentage);
-
-        if (!Number.isFinite(value)) {
-            value = 0;
-        }
-
-        value =
-            Math.max(
-                0,
-                Math.min(
-                    100,
-                    value
-                )
-            );
-
-        element.style.width =
-            value.toFixed(1) + "%";
-
-        element.classList.remove(
-            "warning",
-            "hot",
-            "critical"
-        );
-
-        if (value >= 90) {
-
-            element.classList.add(
-                "critical"
-            );
-
-        } else if (value >= 75) {
-
-            element.classList.add(
-                "hot"
-            );
-
-        } else if (value >= 60) {
-
-            element.classList.add(
-                "warning"
-            );
-        }
-    }
-
-
-    /*
-     * ---------------------------------------------------------
-     * HEALTH
-     * ---------------------------------------------------------
-     */
-
-    function updateHealth(
-        data
-    ) {
-
-        if (!healthBanner) {
-            return;
-        }
-
-        healthBanner.classList.remove(
-            "health-loading",
-            "health-healthy",
-            "health-warning",
-            "health-critical",
-            "health-error"
-        );
-
-        let highestTemperature =
-            null;
 
         if (
-            Array.isArray(
-                data?.temperatures
-            )
+            !sensor ||
+            typeof sensor !== "object"
         ) {
 
-            for (
-                const sensor
-                of data.temperatures
+            return {
+
+                name:
+                    "Unknown Sensor",
+
+                temperature:
+                    NaN
+
+            };
+
+        }
+
+
+        const temperature =
+            Number(
+
+                sensor.temperature ??
+                sensor.temp ??
+                sensor.value ??
+                sensor.celsius
+
+            );
+
+
+        return {
+
+            ...sensor,
+
+            name:
+
+                sensor.name ??
+                sensor.label ??
+                sensor.sensor ??
+                sensor.id ??
+                "Unknown Sensor",
+
+            temperature
+
+        };
+
+    }
+
+
+    /*
+     * =========================================================
+     * HARDWARE HELPERS
+     * =========================================================
+     */
+
+    function firstValue(
+        object,
+        keys
+    ) {
+
+        if (
+            !object ||
+            typeof object !== "object"
+        ) {
+
+            return null;
+
+        }
+
+
+        for (
+            const key of keys
+        ) {
+
+            const value =
+                object[key];
+
+
+            if (
+                value !== undefined &&
+                value !== null &&
+                String(value).trim() !== ""
             ) {
 
-                const temperature =
-                    Number(
-                        sensor?.temperature
-                    );
+                return value;
 
-                if (
-                    Number.isFinite(
-                        temperature
-                    )
-                ) {
-
-                    if (
-                        highestTemperature === null ||
-                        temperature > highestTemperature
-                    ) {
-                        highestTemperature =
-                            temperature;
-                    }
-                }
-            }
-        }
-
-        const memoryPercent =
-            Number(
-                data?.memory?.percent
-            );
-
-        const swapPercent =
-            Number(
-                data?.swap?.percent
-            );
-
-
-        /*
-         * Critical
-         */
-
-        if (
-            (
-                highestTemperature !== null &&
-                highestTemperature >= 85
-            ) ||
-            (
-                Number.isFinite(memoryPercent) &&
-                memoryPercent >= 95
-            )
-        ) {
-
-            healthBanner.classList.add(
-                "health-critical"
-            );
-
-            if (healthTitle) {
-                healthTitle.textContent =
-                    "SYSTEM CRITICAL";
             }
 
-            if (healthMessage) {
-                healthMessage.textContent =
-                    highestTemperature !== null &&
-                    highestTemperature >= 85
-                        ? "Hardware temperature is critically high."
-                        : "System memory usage is critically high.";
-            }
-
-            if (healthState) {
-                healthState.textContent =
-                    "CRITICAL";
-            }
-
-            return;
         }
 
 
-        /*
-         * Warning
-         */
+        return null;
 
-        if (
-            (
-                highestTemperature !== null &&
-                highestTemperature >= 75
-            ) ||
-            (
-                Number.isFinite(memoryPercent) &&
-                memoryPercent >= 80
-            ) ||
-            (
-                Number.isFinite(swapPercent) &&
-                swapPercent >= 50
-            )
-        ) {
-
-            healthBanner.classList.add(
-                "health-warning"
-            );
-
-            if (healthTitle) {
-                healthTitle.textContent =
-                    "SYSTEM WARNING";
-            }
-
-            if (healthMessage) {
-                healthMessage.textContent =
-                    "One or more system resources require attention.";
-            }
-
-            if (healthState) {
-                healthState.textContent =
-                    "WARNING";
-            }
-
-            return;
-        }
+    }
 
 
-        /*
-         * Healthy
-         */
+    function getManufacturer(
+        object
+    ) {
 
-        healthBanner.classList.add(
-            "health-healthy"
+        return firstValue(
+
+            object,
+
+            [
+
+                "manufacturer",
+                "vendor",
+                "brand",
+                "maker"
+
+            ]
+
         );
 
-        if (healthTitle) {
-            healthTitle.textContent =
-                "SYSTEM HEALTHY";
-        }
+    }
 
-        if (healthMessage) {
-            healthMessage.textContent =
-                "Server hardware and system resources are operating normally.";
-        }
 
-        if (healthState) {
-            healthState.textContent =
-                "HEALTHY";
-        }
+    function getModel(
+        object
+    ) {
+
+        return firstValue(
+
+            object,
+
+            [
+
+                "model",
+                "model_name",
+                "modelName",
+                "product",
+                "product_name",
+                "productName",
+                "name"
+
+            ]
+
+        );
+
+    }
+
+
+    function getSizeBytes(
+        object
+    ) {
+
+        return firstValue(
+
+            object,
+
+            [
+
+                "size_bytes",
+                "sizeBytes",
+                "capacity_bytes",
+                "capacityBytes",
+                "bytes"
+
+            ]
+
+        );
+
+    }
+
+
+    function getFriendlyHardwareName(
+        object
+    ) {
+
+        return firstValue(
+
+            object,
+
+            [
+
+                "display_name",
+                "displayName",
+                "friendly_name",
+                "friendlyName"
+
+            ]
+
+        );
+
     }
 
 
     /*
-     * ---------------------------------------------------------
+     * =========================================================
+     * NORMALIZE HARDWARE RESPONSE
+     * =========================================================
+     */
+
+    function normalizeHardwareResponse(
+        result
+    ) {
+
+        if (
+            !result ||
+            typeof result !== "object"
+        ) {
+
+            throw new Error(
+                "Invalid Hardware Status response."
+            );
+
+        }
+
+
+        let data =
+            result;
+
+
+        /*
+         * data wrapper
+         */
+
+        if (
+            data.data &&
+            typeof data.data === "object"
+        ) {
+
+            data =
+                data.data;
+
+        }
+
+
+        /*
+         * result wrapper
+         */
+
+        if (
+            data.result &&
+            typeof data.result === "object"
+        ) {
+
+            data =
+                data.result;
+
+        }
+
+
+        /*
+         * Temperatures
+         */
+
+        const rawTemperatures =
+
+            Array.isArray(
+                data.temperatures
+            )
+
+                ? data.temperatures
+
+                : (
+
+                    Array.isArray(
+                        data.sensors
+                    )
+
+                        ? data.sensors
+
+                        : []
+
+                );
+
+
+        const temperatures =
+            rawTemperatures.map(
+                normalizeSensor
+            );
+
+
+        /*
+         * CPU
+         */
+
+        let cpu =
+
+            data.cpu ??
+            data.processor ??
+            data.cpu_info ??
+            data.cpuInfo ??
+            null;
+
+
+        /*
+         * Memory
+         */
+
+        const memory =
+
+            data.memory ??
+            data.ram ??
+            null;
+
+
+        /*
+         * Storage
+         */
+
+        let storage =
+
+            data.storage ??
+            data.storages ??
+            data.disks ??
+            data.drives ??
+            [];
+
+
+        if (
+            !Array.isArray(storage)
+        ) {
+
+            storage = [
+
+                storage
+
+            ];
+
+        }
+
+
+        /*
+         * Some APIs may expose CPU directly.
+         */
+
+        if (
+            !cpu
+        ) {
+
+            if (
+
+                data.cpu_model ||
+                data.cpuModel ||
+                data.processor_model
+
+            ) {
+
+                cpu = {
+
+                    manufacturer:
+
+                        data.cpu_manufacturer ??
+                        data.cpuManufacturer ??
+                        data.cpu_vendor ??
+                        null,
+
+                    model:
+
+                        data.cpu_model ??
+                        data.cpuModel ??
+                        data.processor_model ??
+                        null,
+
+                    name:
+
+                        data.cpu_name ??
+                        data.cpuName ??
+                        null
+
+                };
+
+            }
+
+        }
+
+
+        /*
+         * IMPORTANT:
+         *
+         * No network normalization here.
+         *
+         * Hardware Status Bridge V2 does not expose
+         * a network hardware section.
+         */
+
+        return {
+
+            ...data,
+
+            version:
+
+                data.version ??
+                data.api_version ??
+                data.apiVersion ??
+                2,
+
+            temperatures,
+
+            cpu,
+
+            memory,
+
+            storage,
+
+            swap:
+
+                data.swap ??
+                null,
+
+            load:
+
+                data.load ??
+                null,
+
+            uptime_seconds:
+
+                data.uptime_seconds ??
+                data.uptimeSeconds ??
+                data.uptime ??
+                0
+
+        };
+
+    }
+
+
+    /*
+     * =========================================================
+     * CPU DISPLAY
+     * =========================================================
+     */
+
+    function renderCpuInfo(
+        cpu
+    ) {
+
+        if (
+            !cpu ||
+            typeof cpu !== "object"
+        ) {
+
+            if (cpuInfo) {
+
+                cpuInfo.textContent =
+                    "Not exposed by bridge";
+
+            }
+
+
+            if (cpuInfoDetail) {
+
+                cpuInfoDetail.textContent =
+                    "V2 CPU identifier unavailable";
+
+            }
+
+
+            return;
+
+        }
+
+
+        const friendly =
+            getFriendlyHardwareName(
+                cpu
+            );
+
+
+        const manufacturer =
+            getManufacturer(
+                cpu
+            );
+
+
+        const model =
+            getModel(
+                cpu
+            );
+
+
+        let primary =
+            friendly ??
+            model;
+
+
+        if (
+            !primary
+        ) {
+
+            primary =
+                manufacturer ??
+                "Not exposed by bridge";
+
+        }
+
+
+        if (cpuInfo) {
+
+            cpuInfo.textContent =
+                String(primary);
+
+        }
+
+
+        if (cpuInfoDetail) {
+
+            if (
+                manufacturer &&
+                model
+            ) {
+
+                cpuInfoDetail.textContent =
+                    `${manufacturer} • ${model}`;
+
+            }
+
+            else if (
+                manufacturer
+            ) {
+
+                cpuInfoDetail.textContent =
+                    String(manufacturer);
+
+            }
+
+            else {
+
+                cpuInfoDetail.textContent =
+                    "V2 CPU identifier";
+
+            }
+
+        }
+
+    }
+
+
+    /*
+     * =========================================================
+     * MEMORY INFO DISPLAY
+     * =========================================================
+     */
+
+    function renderMemoryInfo(
+        memory
+    ) {
+
+        if (
+            !memory ||
+            typeof memory !== "object"
+        ) {
+
+            if (memoryInfo) {
+
+                memoryInfo.textContent =
+                    "Not exposed by bridge";
+
+            }
+
+
+            if (memoryInfoDetail) {
+
+                memoryInfoDetail.textContent =
+                    "V2 memory information unavailable";
+
+            }
+
+
+            return;
+
+        }
+
+
+        const total =
+
+            memory.total_bytes ??
+            memory.totalBytes;
+
+
+        if (
+            Number.isFinite(
+                Number(total)
+            )
+        ) {
+
+            if (memoryInfo) {
+
+                memoryInfo.textContent =
+                    formatBytes(total);
+
+            }
+
+
+            if (memoryInfoDetail) {
+
+                memoryInfoDetail.textContent =
+                    "Total memory";
+
+            }
+
+
+            return;
+
+        }
+
+
+        if (
+            memory.total_kb !== undefined
+        ) {
+
+            if (memoryInfo) {
+
+                memoryInfo.textContent =
+                    formatBytesFromKB(
+                        memory.total_kb
+                    );
+
+            }
+
+
+            if (memoryInfoDetail) {
+
+                memoryInfoDetail.textContent =
+                    "Total memory";
+
+            }
+
+
+            return;
+
+        }
+
+
+        if (memoryInfo) {
+
+            memoryInfo.textContent =
+                "Available";
+
+        }
+
+
+        if (memoryInfoDetail) {
+
+            memoryInfoDetail.textContent =
+                "Capacity not exposed";
+
+        }
+
+    }
+
+
+    /*
+     * =========================================================
+     * HARDWARE LIST
+     * =========================================================
+     */
+
+    function normalizeHardwareList(
+        items
+    ) {
+
+        if (
+            !Array.isArray(items)
+        ) {
+
+            return [];
+
+        }
+
+
+        return items.filter(
+
+            item =>
+                item &&
+                typeof item === "object"
+
+        );
+
+    }
+
+
+    /*
+     * =========================================================
+     * STORAGE DISPLAY
+     * =========================================================
+     *
+     * Layout:
+     *
+     * Manufacturer
+     * Model
+     * Bus • Size
+     *
+     * No fake Example labels.
+     * =========================================================
+     */
+
+    function renderStorageInfo(
+        storage
+    ) {
+
+        if (
+            !storageInfo
+        ) {
+
+            return;
+
+        }
+
+
+        const items =
+            normalizeHardwareList(
+                storage
+            );
+
+
+        if (
+            items.length === 0
+        ) {
+
+            storageInfo.innerHTML = `
+
+                <div class="hardware-list-empty">
+
+                    No storage identifiers
+                    exposed by bridge.
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        storageInfo.innerHTML =
+
+            items.map(
+
+                item => {
+
+                    const manufacturer =
+                        getManufacturer(
+                            item
+                        );
+
+
+                    const model =
+                        getModel(
+                            item
+                        );
+
+
+                    const friendly =
+                        getFriendlyHardwareName(
+                            item
+                        );
+
+
+                    const bus =
+                        firstValue(
+
+                            item,
+
+                            [
+
+                                "bus",
+                                "type",
+                                "kind"
+
+                            ]
+
+                        );
+
+
+                    const size =
+                        getSizeBytes(
+                            item
+                        );
+
+
+                    const primary =
+
+                        friendly ??
+                        model ??
+                        manufacturer ??
+                        "Unknown Storage Device";
+
+
+                    const details = [];
+
+
+                    if (
+                        manufacturer &&
+                        model &&
+                        manufacturer !== model
+                    ) {
+
+                        details.push(
+                            `${manufacturer} • ${model}`
+                        );
+
+                    }
+
+                    else if (
+                        model
+                    ) {
+
+                        details.push(
+                            String(model)
+                        );
+
+                    }
+
+                    else if (
+                        manufacturer
+                    ) {
+
+                        details.push(
+                            String(manufacturer)
+                        );
+
+                    }
+
+
+                    if (
+                        bus
+                    ) {
+
+                        details.push(
+
+                            String(bus)
+                                .toUpperCase()
+
+                        );
+
+                    }
+
+
+                    if (
+                        size !== null
+                    ) {
+
+                        details.push(
+                            formatBytes(size)
+                        );
+
+                    }
+
+
+                    return `
+
+                        <div
+                            class="hardware-list-item"
+                        >
+
+                            <div
+                                class="hardware-list-name"
+                            >
+
+                                ${escapeHtml(
+                                    primary
+                                )}
+
+                            </div>
+
+                            <div
+                                class="hardware-list-detail"
+                            >
+
+                                ${escapeHtml(
+
+                                    details.join(
+                                        " • "
+                                    ) ||
+
+                                    "Identifier exposed by bridge"
+
+                                )}
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+
+            ).join("");
+
+    }
+
+
+    /*
+     * =========================================================
      * RENDER TEMPERATURES
-     * ---------------------------------------------------------
+     * =========================================================
      */
 
     function renderSensors(
         sensors
     ) {
 
-        if (!sensorGrid) {
-            return;
-        }
-
         if (
             !Array.isArray(sensors) ||
             sensors.length === 0
         ) {
 
-            sensorGrid.innerHTML = `
-                <div class="loading">
-                    No temperature sensors found.
-                </div>
-            `;
+            if (sensorGrid) {
 
-            if (sensorStatus) {
-                sensorStatus.textContent =
-                    "NO DATA";
+                sensorGrid.innerHTML = `
+
+                    <div class="loading">
+
+                        <div class="loading-fox">
+                            🦊
+                        </div>
+
+                        <span>
+                            No temperature sensors found.
+                        </span>
+
+                    </div>
+
+                `;
+
             }
 
+
+            if (sensorStatus) {
+
+                sensorStatus.textContent =
+                    "NO DATA";
+
+            }
+
+
+            if (
+                hardwareTemperatureStatus
+            ) {
+
+                hardwareTemperatureStatus.textContent =
+                    "NO DATA";
+
+            }
+
+
+            if (
+                hardwareSensorCount
+            ) {
+
+                hardwareSensorCount.textContent =
+                    "0";
+
+            }
+
+
             return;
+
         }
 
 
-        const renderedSensors =
-            sensors
-                .map(
-                    sensor => {
+        const validSensors =
 
-                        const temperature =
-                            Number(
-                                sensor?.temperature
-                            );
-
-                        if (
-                            !Number.isFinite(
-                                temperature
-                            )
-                        ) {
-                            return "";
-                        }
-
-                        const state =
-                            getTemperatureState(
-                                temperature
-                            );
-
-                        /*
-                         * IMPORTANT FIX:
-                         *
-                         * Apply the state class to the
-                         * sensor container itself.
-                         *
-                         * Previously the state class only
-                         * existed on the temperature text,
-                         * meaning .sensor.normal etc. never
-                         * matched.
-                         */
-
-                        return `
-                            <div class="sensor ${state.className}">
-
-                                <div class="sensor-name">
-                                    ${escapeHtml(
-                                        sensor?.name ||
-                                        "Unknown Sensor"
-                                    )}
-                                </div>
-
-                                <div
-                                    class="sensor-temperature ${state.className}"
-                                >
-                                    ${temperature.toFixed(
-                                        1
-                                    )}°C
-                                </div>
-
-                                <div
-                                    class="sensor-state ${state.className}"
-                                >
-                                    ${state.name}
-                                </div>
-
-                            </div>
-                        `;
-                    }
-                )
-                .join("");
-
-
-        sensorGrid.innerHTML =
-            renderedSensors ||
-            `
-                <div class="loading">
-                    No valid temperature readings.
-                </div>
-            `;
-
-
-        const validCount =
             sensors.filter(
+
                 sensor =>
                     Number.isFinite(
                         Number(
-                            sensor?.temperature
+                            sensor.temperature
                         )
                     )
-            ).length;
+
+            );
+
+
+        if (
+            sensorGrid
+        ) {
+
+            sensorGrid.innerHTML =
+
+                validSensors
+
+                    .map(
+
+                        sensor => {
+
+                            const temperature =
+                                Number(
+                                    sensor.temperature
+                                );
+
+
+                            const state =
+                                getTemperatureState(
+                                    temperature
+                                );
+
+
+                            const displayName =
+                                getSensorDisplayName(
+                                    sensor
+                                );
+
+
+                            return `
+
+                                <div
+                                    class="sensor"
+                                >
+
+                                    <div
+                                        class="sensor-name"
+                                    >
+
+                                        ${escapeHtml(
+                                            displayName
+                                        )}
+
+                                    </div>
+
+                                    <div
+                                        class="sensor-temperature ${state.className}"
+                                    >
+
+                                        ${temperature.toFixed(
+                                            1
+                                        )}°C
+
+                                    </div>
+
+                                    <div
+                                        class="sensor-state ${state.className}"
+                                    >
+
+                                        ${state.name}
+
+                                    </div>
+
+                                </div>
+
+                            `;
+
+                        }
+
+                    )
+
+                    .join("");
+
+        }
+
 
         if (sensorStatus) {
 
             sensorStatus.textContent =
-                `${validCount} SENSOR${
-                    validCount === 1
+
+                `${validSensors.length} SENSOR${
+                    validSensors.length === 1
                         ? ""
                         : "S"
                 } OK`;
+
         }
+
+
+        if (
+            hardwareTemperatureStatus
+        ) {
+
+            hardwareTemperatureStatus.textContent =
+                "LIVE";
+
+        }
+
+
+        if (
+            hardwareSensorCount
+        ) {
+
+            hardwareSensorCount.textContent =
+                String(
+                    validSensors.length
+                );
+
+        }
+
     }
 
 
     /*
-     * ---------------------------------------------------------
-     * SYSTEM
-     * ---------------------------------------------------------
+     * =========================================================
+     * RENDER SYSTEM
+     * =========================================================
      */
 
     function renderSystem(
@@ -994,35 +2375,67 @@
          * MEMORY
          */
 
-        if (data?.memory) {
+        if (
+            data.memory
+        ) {
 
             const percent =
                 Number(
-                    data.memory.percent
+                    data.memory.percent ??
+                    0
                 );
 
-            memoryStatus.textContent =
-                Number.isFinite(percent)
-                    ? `${percent.toFixed(1)}% ` +
-                      `(${formatBytesFromKB(
-                          data.memory.used_kb
-                      )})`
-                    : "UNKNOWN";
 
-            setMetricBar(
-                memoryBar,
-                percent
-            );
+            if (memoryStatus) {
 
-        } else {
+                memoryStatus.textContent =
 
-            memoryStatus.textContent =
-                "UNKNOWN";
+                    `${percent.toFixed(1)}% ` +
 
-            setMetricBar(
-                memoryBar,
-                0
-            );
+                    `(${formatBytesFromKB(
+                        data.memory.used_kb
+                    )})`;
+
+            }
+
+
+            if (
+                memoryBar
+            ) {
+
+                memoryBar.style.width =
+
+                    `${Math.min(
+                        100,
+                        Math.max(
+                            0,
+                            percent
+                        )
+                    )}%`;
+
+            }
+
+        }
+
+        else {
+
+            if (memoryStatus) {
+
+                memoryStatus.textContent =
+                    "UNKNOWN";
+
+            }
+
+
+            if (
+                memoryBar
+            ) {
+
+                memoryBar.style.width =
+                    "0%";
+
+            }
+
         }
 
 
@@ -1030,35 +2443,67 @@
          * SWAP
          */
 
-        if (data?.swap) {
+        if (
+            data.swap
+        ) {
 
             const percent =
                 Number(
-                    data.swap.percent
+                    data.swap.percent ??
+                    0
                 );
 
-            swapStatus.textContent =
-                Number.isFinite(percent)
-                    ? `${percent.toFixed(1)}% ` +
-                      `(${formatBytesFromKB(
-                          data.swap.used_kb
-                      )})`
-                    : "UNKNOWN";
 
-            setMetricBar(
-                swapBar,
-                percent
-            );
+            if (swapStatus) {
 
-        } else {
+                swapStatus.textContent =
 
-            swapStatus.textContent =
-                "UNKNOWN";
+                    `${percent.toFixed(1)}% ` +
 
-            setMetricBar(
-                swapBar,
-                0
-            );
+                    `(${formatBytesFromKB(
+                        data.swap.used_kb
+                    )})`;
+
+            }
+
+
+            if (
+                swapBar
+            ) {
+
+                swapBar.style.width =
+
+                    `${Math.min(
+                        100,
+                        Math.max(
+                            0,
+                            percent
+                        )
+                    )}%`;
+
+            }
+
+        }
+
+        else {
+
+            if (swapStatus) {
+
+                swapStatus.textContent =
+                    "UNKNOWN";
+
+            }
+
+
+            if (
+                swapBar
+            ) {
+
+                swapBar.style.width =
+                    "0%";
+
+            }
+
         }
 
 
@@ -1066,23 +2511,39 @@
          * LOAD
          */
 
-        if (data?.load) {
+        if (
+            data.load
+        ) {
 
-            loadStatus.textContent =
-                `${Number(
-                    data.load.one || 0
-                ).toFixed(2)} / ` +
-                `${Number(
-                    data.load.five || 0
-                ).toFixed(2)} / ` +
-                `${Number(
-                    data.load.fifteen || 0
-                ).toFixed(2)}`;
+            if (loadStatus) {
 
-        } else {
+                loadStatus.textContent =
 
-            loadStatus.textContent =
-                "UNKNOWN";
+                    `${Number(
+                        data.load.one ?? 0
+                    ).toFixed(2)} / ` +
+
+                    `${Number(
+                        data.load.five ?? 0
+                    ).toFixed(2)} / ` +
+
+                    `${Number(
+                        data.load.fifteen ?? 0
+                    ).toFixed(2)}`;
+
+            }
+
+        }
+
+        else {
+
+            if (loadStatus) {
+
+                loadStatus.textContent =
+                    "UNKNOWN";
+
+            }
+
         }
 
 
@@ -1090,362 +2551,663 @@
          * UPTIME
          */
 
-        uptimeStatus.textContent =
-            formatUptime(
-                data?.uptime_seconds
-            );
+        if (
+            uptimeStatus
+        ) {
+
+            uptimeStatus.textContent =
+                formatUptime(
+                    data.uptime_seconds
+                );
+
+        }
+
+
+        /*
+         * SYSTEM INFO
+         */
+
+        renderCpuInfo(
+            data.cpu
+        );
+
+
+        renderMemoryInfo(
+            data.memory
+        );
+
+
+        renderStorageInfo(
+            data.storage
+        );
+
+
+        /*
+         * NO renderNetworkInfo().
+         *
+         * V2 has no network hardware API.
+         */
+
     }
 
 
     /*
-     * ---------------------------------------------------------
-     * SENSOR PROVIDER
-     * ---------------------------------------------------------
+     * =========================================================
+     * BRIDGE METADATA
+     * =========================================================
      */
 
-    async function getSensorData() {
+    function renderBridgeInfo(
+        data
+    ) {
+
+        const version =
+            data.version ??
+            2;
+
+
+        if (
+            hardwareBridgeVersion
+        ) {
+
+            hardwareBridgeVersion.textContent =
+                `V${version}`;
+
+        }
+
+
+        if (
+            hardwareBridgeDetail
+        ) {
+
+            hardwareBridgeDetail.textContent =
+                "Hardware Status Bridge";
+
+        }
+
+
+        if (
+            hardwareApiStatus
+        ) {
+
+            hardwareApiStatus.textContent =
+                "ACTIVE";
+
+        }
+
+    }
+
+
+    /*
+     * =========================================================
+     * HARDWARE STATUS PROVIDER
+     * =========================================================
+     */
+
+    async function getHardwareStatus() {
 
         /*
-         * LOCAL BROWSER PREVIEW
+         * LOCAL HTML TEST
          */
 
-        if (LOCAL_DEVELOPMENT) {
+        if (
+            LOCAL_DEVELOPMENT
+        ) {
 
             await new Promise(
+
                 resolve =>
                     setTimeout(
                         resolve,
-                        250
+                        150
                     )
+
             );
 
+
             return getMockData();
+
         }
 
 
         /*
-         * REAL DUNE CONSOLE
+         * DUNE CONSOLE
          */
 
-        if (!HAS_DUNE_BRIDGE) {
+        if (
+            !HAS_DUNE_BRIDGE
+        ) {
 
             throw new Error(
                 "DuneAddon bridge unavailable."
             );
+
         }
 
 
         /*
-         * REAL CORE REQUEST
-         *
-         * This is the ONLY hardware request.
+         * HARDWARE STATUS BRIDGE V2
          */
 
         const result =
+
             await window.DuneAddon.request(
                 "server.hardware.status"
             );
 
 
-        if (
-            !result ||
-            typeof result !== "object"
-        ) {
+        return normalizeHardwareResponse(
+            result
+        );
 
-            throw new Error(
-                "Invalid sensor response."
-            );
-        }
-
-
-        return result;
     }
 
 
     /*
-     * ---------------------------------------------------------
-     * MAIN LOAD
-     * ---------------------------------------------------------
+     * =========================================================
+     * REFRESH STATE
+     * =========================================================
+     */
+
+    let refreshTimer =
+        null;
+
+    let currentRefreshInterval =
+        5000;
+
+    let refreshInProgress =
+        false;
+
+
+    /*
+     * =========================================================
+     * LOAD HARDWARE
+     * =========================================================
      */
 
     async function loadTemperatures() {
 
-        /*
-         * Prevent overlapping requests.
-         */
+        if (
+            refreshInProgress
+        ) {
 
-        if (requestInFlight) {
             return;
+
         }
 
-        requestInFlight =
+
+        refreshInProgress =
             true;
 
 
-        if (refreshButton) {
+        if (
+            refreshButton
+        ) {
 
             refreshButton.disabled =
                 true;
+
         }
 
-        if (refreshLabel) {
-            refreshLabel.textContent =
-                "Reading...";
-        }
 
-        if (refreshIcon) {
-            refreshIcon.textContent =
-                "↻";
-        }
-
-        if (lastUpdate) {
+        if (
+            lastUpdate
+        ) {
 
             lastUpdate.textContent =
-                "Reading sensors...";
+                "Reading hardware...";
+
         }
 
-        if (sensorStatus) {
+
+        if (
+            sensorStatus
+        ) {
 
             sensorStatus.textContent =
                 "READING";
+
+        }
+
+
+        if (
+            hardwareTemperatureStatus
+        ) {
+
+            hardwareTemperatureStatus.textContent =
+                "READING";
+
         }
 
 
         try {
 
             const data =
-                await getSensorData();
+                await getHardwareStatus();
 
 
             /*
-             * Validate basic response.
-             */
-
-            if (
-                !data ||
-                typeof data !== "object"
-            ) {
-                throw new Error(
-                    "Server returned an invalid hardware status response."
-                );
-            }
-
-
-            /*
-             * Render data.
+             * Temperatures
              */
 
             renderSensors(
                 data.temperatures
             );
 
-            renderSystem(
-                data
-            );
 
-            updateHealth(
+            /*
+             * System
+             */
+
+            renderSystem(
                 data
             );
 
 
             /*
-             * Server state.
+             * Bridge
              */
 
-            if (serverStatus) {
-
-                serverStatus.textContent =
-                    LOCAL_DEVELOPMENT
-                        ? "LOCAL TEST"
-                        : "ONLINE";
-            }
-
-
-            if (lastUpdate) {
-
-                lastUpdate.textContent =
-                    "Updated " +
-                    new Date()
-                        .toLocaleTimeString();
-            }
-
-
-        } catch (error) {
-
-            console.error(
-                "Fluffy Fox sensor error:",
-                error
+            renderBridgeInfo(
+                data
             );
 
 
-            if (sensorGrid) {
+            /*
+             * Server
+             */
+
+            if (
+                serverStatus
+            ) {
+
+                serverStatus.textContent =
+
+                    LOCAL_DEVELOPMENT
+                        ? "LOCAL TEST"
+                        : "ONLINE";
+
+            }
+
+
+            /*
+             * Timestamp
+             */
+
+            if (
+                lastUpdate
+            ) {
+
+                lastUpdate.textContent =
+
+                    "Updated " +
+
+                    new Date()
+                        .toLocaleTimeString();
+
+            }
+
+        }
+
+        catch (
+            error
+        ) {
+
+            console.error(
+
+                "Fluffy Fox Hardware Status error:",
+                error
+
+            );
+
+
+            if (
+                sensorGrid
+            ) {
 
                 sensorGrid.innerHTML = `
-                    <div class="loading loading-error">
+
+                    <div class="loading">
 
                         <div class="loading-fox">
                             🦊
                         </div>
 
                         <span>
+
                             ${escapeHtml(
-                                error?.message ||
-                                "Unknown sensor error."
+
+                                error &&
+                                error.message
+
+                                    ? error.message
+
+                                    : "Unknown hardware status error."
+
                             )}
+
                         </span>
 
                     </div>
+
                 `;
+
             }
 
 
-            if (sensorStatus) {
+            if (
+                sensorStatus
+            ) {
+
                 sensorStatus.textContent =
                     "ERROR";
+
             }
 
-            if (serverStatus) {
+
+            if (
+                serverStatus
+            ) {
 
                 serverStatus.textContent =
+
                     LOCAL_DEVELOPMENT
                         ? "LOCAL TEST"
                         : "ERROR";
+
             }
 
-            if (memoryStatus) {
+
+            if (
+                memoryStatus
+            ) {
+
                 memoryStatus.textContent =
                     "ERROR";
+
             }
 
-            if (swapStatus) {
+
+            if (
+                swapStatus
+            ) {
+
                 swapStatus.textContent =
                     "ERROR";
+
             }
 
-            if (loadStatus) {
+
+            if (
+                loadStatus
+            ) {
+
                 loadStatus.textContent =
                     "ERROR";
+
             }
 
-            if (uptimeStatus) {
+
+            if (
+                uptimeStatus
+            ) {
+
                 uptimeStatus.textContent =
                     "ERROR";
+
             }
 
 
-            setMetricBar(
-                memoryBar,
-                0
-            );
+            if (
+                hardwareTemperatureStatus
+            ) {
 
-            setMetricBar(
-                swapBar,
-                0
-            );
-
-
-            /*
-             * Health error state.
-             */
-
-            if (healthBanner) {
-
-                healthBanner.classList.remove(
-                    "health-loading",
-                    "health-healthy",
-                    "health-warning",
-                    "health-critical"
-                );
-
-                healthBanner.classList.add(
-                    "health-error"
-                );
-            }
-
-            if (healthTitle) {
-                healthTitle.textContent =
-                    "SYSTEM STATUS ERROR";
-            }
-
-            if (healthMessage) {
-                healthMessage.textContent =
-                    error?.message ||
-                    "Unable to read server hardware status.";
-            }
-
-            if (healthState) {
-                healthState.textContent =
+                hardwareTemperatureStatus.textContent =
                     "ERROR";
+
             }
 
 
-            if (lastUpdate) {
+            if (
+                hardwareApiStatus
+            ) {
+
+                hardwareApiStatus.textContent =
+                    "ERROR";
+
+            }
+
+
+            if (
+                hardwareSensorCount
+            ) {
+
+                hardwareSensorCount.textContent =
+                    "ERROR";
+
+            }
+
+
+            if (
+                lastUpdate
+            ) {
 
                 lastUpdate.textContent =
-                    "Sensor read failed";
+                    "Hardware status read failed";
+
             }
 
+        }
 
-        } finally {
 
-            requestInFlight =
+        finally {
+
+            refreshInProgress =
                 false;
 
-            if (refreshButton) {
+
+            if (
+                refreshButton
+            ) {
 
                 refreshButton.disabled =
                     false;
+
             }
 
-            if (refreshLabel) {
-                refreshLabel.textContent =
-                    "Refresh";
-            }
-
-            if (refreshIcon) {
-                refreshIcon.textContent =
-                    "↻";
-            }
         }
+
     }
 
 
     /*
-     * ---------------------------------------------------------
-     * EVENTS
-     * ---------------------------------------------------------
+     * =========================================================
+     * REFRESH SCHEDULER
+     * =========================================================
      */
 
-    if (refreshButton) {
+    function stopRefreshTimer() {
+
+        if (
+            refreshTimer !== null
+        ) {
+
+            clearInterval(
+                refreshTimer
+            );
+
+
+            refreshTimer =
+                null;
+
+        }
+
+    }
+
+
+    function updateRefreshUI() {
+
+        if (
+            !refreshInterval
+        ) {
+
+            return;
+
+        }
+
+
+        const milliseconds =
+            Number(
+                refreshInterval.value
+            );
+
+
+        currentRefreshInterval =
+
+            Number.isFinite(
+                milliseconds
+            )
+
+                ? milliseconds
+
+                : 0;
+
+
+        stopRefreshTimer();
+
+
+        if (
+            refreshStatus
+        ) {
+
+            refreshStatus.textContent =
+
+                currentRefreshInterval > 0
+
+                    ? "● Auto-refresh enabled"
+
+                    : "● Manual refresh";
+
+        }
+
+
+        if (
+            refreshIntervalLabel
+        ) {
+
+            refreshIntervalLabel.textContent =
+
+                currentRefreshInterval > 0
+
+                    ? `Every ${
+                        currentRefreshInterval / 1000
+                    } seconds`
+
+                    : "Manual";
+
+        }
+
+
+        if (
+            currentRefreshInterval > 0
+        ) {
+
+            refreshTimer =
+
+                setInterval(
+
+                    loadTemperatures,
+
+                    currentRefreshInterval
+
+                );
+
+        }
+
+    }
+
+
+    /*
+     * =========================================================
+     * REFRESH BUTTON
+     * =========================================================
+     */
+
+    if (
+        refreshButton
+    ) {
 
         refreshButton.addEventListener(
+
             "click",
+
             loadTemperatures
+
         );
+
     }
 
 
     /*
-     * ---------------------------------------------------------
-     * STARTUP
-     * ---------------------------------------------------------
+     * =========================================================
+     * REFRESH INTERVAL
+     * =========================================================
      */
 
-    initializeRefreshSettings();
+    if (
+        refreshInterval
+    ) {
 
-    startAutoRefresh();
+        refreshInterval.addEventListener(
+
+            "change",
+
+            function () {
+
+                updateRefreshUI();
+
+            }
+
+        );
+
+    }
+
+
+    /*
+     * =========================================================
+     * INITIAL LOAD
+     * =========================================================
+     */
 
     loadTemperatures();
 
+    updateRefreshUI();
+
 
     /*
-     * ---------------------------------------------------------
-     * GLOBAL
-     * ---------------------------------------------------------
+     * =========================================================
+     * DEBUG HELPERS
+     * =========================================================
      */
 
-    window.loadTemperatures =
+    window.FluffyFox =
+        window.FluffyFox || {};
+
+
+    window.FluffyFox.loadTemperatures =
         loadTemperatures;
+
+
+    window.FluffyFox.getSensorDisplayName =
+        getSensorDisplayName;
+
+
+    window.FluffyFox.normalizeHardwareResponse =
+        normalizeHardwareResponse;
+
+
+    window.FluffyFox.getHardwareStatus =
+        getHardwareStatus;
 
 
 })();

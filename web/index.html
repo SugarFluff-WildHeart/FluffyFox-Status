@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html
     lang="en"
     data-addon-id="fluffy-fox-status"
@@ -56,173 +55,17 @@
     </header>
 
 
-    <!-- =====================================================
-         OVERALL HEALTH
-         ===================================================== -->
-
-    <section
-        id="health-banner"
-        class="health-banner health-loading"
-    >
-
-        <div class="health-icon">
-            ●
-        </div>
-
-        <div class="health-content">
-
-            <strong id="health-title">
-                CHECKING SYSTEM
-            </strong>
-
-            <span id="health-message">
-                Reading server hardware status...
-            </span>
-
-        </div>
-
-        <div
-            id="health-state"
-            class="health-state"
-        >
-            CHECKING
-        </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         TEMPERATURES
-         ===================================================== -->
-
-    <section class="status-card">
-
-        <div class="status-header">
-
-            <div>
-
-                <div class="section-heading">
-
-                    <span class="section-icon">
-                        🌡️
-                    </span>
-
-                    <div>
-
-                        <h2>
-                            Temperature Sensors
-                        </h2>
-
-                        <span id="last-update">
-                            Waiting for sensor data...
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <button
-                id="refresh-button"
-                type="button"
-            >
-
-                <span
-                    id="refresh-icon"
-                    class="refresh-icon"
-                >
-                    ↻
-                </span>
-
-                <span id="refresh-label">
-                    Refresh
-                </span>
-
-            </button>
-
-        </div>
-
-
-        <div
-            id="sensor-grid"
-            class="sensor-grid"
-        >
-
-            <div class="loading">
-
-                <div class="loading-fox">
-                    🦊
-                </div>
-
-                <span>
-                    Reading hardware...
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <div class="update-meta">
-
-            <label
-                for="refresh-interval"
-            >
-                Refresh
-            </label>
-
-            <select
-                id="refresh-interval"
-                aria-label="Refresh interval"
-            >
-
-                <option value="0">
-                    Manual
-                </option>
-
-                <option
-                    value="5000"
-                    selected
-                >
-                    5 seconds
-                </option>
-
-                <option value="10000">
-                    10 seconds
-                </option>
-
-                <option value="30000">
-                    30 seconds
-                </option>
-
-                <option value="60000">
-                    60 seconds
-                </option>
-
-            </select>
-
-            <span id="refresh-status">
-                ● Auto-refresh enabled
-            </span>
-
-            <span id="refresh-interval-label">
-                Every 5 seconds
-            </span>
-
-        </div>
-
-    </section>
-
 
     <!-- =====================================================
          HOST HARDWARE
          ===================================================== -->
 
-    <section class="status-card">
+    <details
+        class="status-card collapsible-section"
+        open
+    >
 
-        <div class="section-title-row">
+        <summary class="section-summary">
 
             <div class="section-heading">
 
@@ -237,84 +80,339 @@
                     </h2>
 
                     <span class="section-subtitle">
-                        Hardware information exposed by Dune Core
+                        Hardware bridge information
                     </span>
 
                 </div>
+
+            </div>
+
+
+            <span class="section-toggle">
+                <span class="toggle-icon">
+                    ›
+                </span>
+            </span>
+
+        </summary>
+
+
+        <div class="section-content">
+
+            <div class="system-grid">
+
+
+                <div class="system-item">
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            🖥️
+                        </span>
+
+                        <span class="label">
+                            Hardware API
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="hardware-api-status"
+                        class="value"
+                    >
+                        ACTIVE
+                    </span>
+
+
+                    <span class="metric-hint">
+                        server.hardware.status
+                    </span>
+
+                </div>
+
+
+
+                <div class="system-item">
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            🔌
+                        </span>
+
+                        <span class="label">
+                            Bridge
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="hardware-bridge-version"
+                        class="value"
+                    >
+                        V2
+                    </span>
+
+
+                    <span
+                        id="hardware-bridge-detail"
+                        class="metric-hint"
+                    >
+                        Hardware Status Bridge
+                    </span>
+
+                </div>
+
+
+
+                <div class="system-item">
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            🌡️
+                        </span>
+
+                        <span class="label">
+                            Temperature Source
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="hardware-temperature-status"
+                        class="value"
+                    >
+                        WAITING
+                    </span>
+
+
+                    <span class="metric-hint">
+                        Dune Core hardware telemetry
+                    </span>
+
+                </div>
+
+
+
+                <div class="system-item">
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            📡
+                        </span>
+
+                        <span class="label">
+                            Sensors
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="hardware-sensor-count"
+                        class="value"
+                    >
+                        WAITING
+                    </span>
+
+
+                    <span class="metric-hint">
+                        Temperature sensors
+                    </span>
+
+                </div>
+
 
             </div>
 
         </div>
 
+    </details>
 
-        <div class="system-grid">
 
-            <div class="system-item">
 
-                <div class="metric-top">
+    <!-- =====================================================
+         SYSTEM INFO
+         ===================================================== -->
 
-                    <span class="metric-icon">
-                        🖥️
-                    </span>
+    <details
+        class="status-card collapsible-section"
+        open
+    >
 
-                    <span class="label">
-                        Hardware API
+        <summary class="section-summary">
+
+            <div class="section-heading">
+
+                <span class="section-icon">
+                    🧩
+                </span>
+
+                <div>
+
+                    <h2>
+                        System Info
+                    </h2>
+
+                    <span class="section-subtitle">
+                        CPU, memory and storage
                     </span>
 
                 </div>
-
-                <span
-                    class="value online"
-                >
-                    ACTIVE
-                </span>
-
-                <span class="metric-hint">
-                    server.hardware.status
-                </span>
 
             </div>
 
 
-            <div class="system-item">
+            <span class="section-toggle">
 
-                <div class="metric-top">
+                <span class="toggle-icon">
+                    ›
+                </span>
 
-                    <span class="metric-icon">
-                        🌡️
+            </span>
+
+        </summary>
+
+
+        <div class="section-content">
+
+            <div class="system-grid">
+
+
+                <!-- CPU -->
+
+                <div
+                    id="cpu-info-card"
+                    class="system-item system-item-large"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            🧠
+                        </span>
+
+                        <span class="label">
+                            CPU
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="cpu-info"
+                        class="value"
+                    >
+                        WAITING
                     </span>
 
-                    <span class="label">
-                        Temperature Source
+
+                    <span
+                        id="cpu-info-detail"
+                        class="metric-hint"
+                    >
+                        Waiting for CPU identifier
                     </span>
 
                 </div>
 
-                <span
-                    id="hardware-temperature-status"
-                    class="value"
-                >
-                    LIVE
-                </span>
 
-                <span class="metric-hint">
-                    Provided by Dune Core
-                </span>
+
+                <!-- MEMORY -->
+
+                <div
+                    id="memory-info-card"
+                    class="system-item system-item-large"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            🧮
+                        </span>
+
+                        <span class="label">
+                            Memory
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="memory-info"
+                        class="value"
+                    >
+                        WAITING
+                    </span>
+
+
+                    <span
+                        id="memory-info-detail"
+                        class="metric-hint"
+                    >
+                        Total memory
+                    </span>
+
+                </div>
+
+
+
+                <!-- STORAGE -->
+
+                <div
+                    id="storage-info-card"
+                    class="system-item system-item-large"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            💿
+                        </span>
+
+                        <span class="label">
+                            Storage
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="storage-info"
+                        class="hardware-list"
+                    >
+
+                        <div class="hardware-list-empty">
+                            Waiting for storage identifiers...
+                        </div>
+
+                    </div>
+
+                </div>
+
 
             </div>
 
         </div>
 
-    </section>
+    </details>
+
 
 
     <!-- =====================================================
          SYSTEM STATUS
          ===================================================== -->
 
-    <section class="status-card">
+    <details
+        class="status-card collapsible-section"
+    >
 
-        <div class="section-title-row">
+        <summary class="section-summary">
 
             <div class="section-heading">
 
@@ -336,211 +434,387 @@
 
             </div>
 
+
+            <span class="section-toggle">
+
+                <span class="toggle-icon">
+                    ›
+                </span>
+
+            </span>
+
+        </summary>
+
+
+        <div class="section-content">
+
+            <div class="system-grid">
+
+
+                <!-- SERVER -->
+
+                <div
+                    id="server-card"
+                    class="system-item"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            🖥️
+                        </span>
+
+                        <span class="label">
+                            Server
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="server-status"
+                        class="value"
+                    >
+                        WAITING
+                    </span>
+
+                </div>
+
+
+
+                <!-- SENSORS -->
+
+                <div
+                    id="sensor-status-card"
+                    class="system-item"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            🌡️
+                        </span>
+
+                        <span class="label">
+                            Sensors
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="sensor-status"
+                        class="value"
+                    >
+                        WAITING
+                    </span>
+
+                </div>
+
+
+
+                <!-- MEMORY -->
+
+                <div
+                    id="memory-card"
+                    class="system-item metric-resource"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            🧠
+                        </span>
+
+                        <span class="label">
+                            Memory
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="memory-status"
+                        class="value"
+                    >
+                        WAITING
+                    </span>
+
+
+                    <div class="metric-bar">
+
+                        <div
+                            id="memory-bar"
+                            class="metric-fill"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- SWAP -->
+
+                <div
+                    id="swap-card"
+                    class="system-item metric-resource"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            💾
+                        </span>
+
+                        <span class="label">
+                            Swap
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="swap-status"
+                        class="value"
+                    >
+                        WAITING
+                    </span>
+
+
+                    <div class="metric-bar">
+
+                        <div
+                            id="swap-bar"
+                            class="metric-fill"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- LOAD -->
+
+                <div
+                    id="load-card"
+                    class="system-item"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            📊
+                        </span>
+
+                        <span class="label">
+                            Load
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="load-status"
+                        class="value"
+                    >
+                        WAITING
+                    </span>
+
+
+                    <span class="metric-hint">
+                        1m / 5m / 15m
+                    </span>
+
+                </div>
+
+
+
+                <!-- UPTIME -->
+
+                <div
+                    id="uptime-card"
+                    class="system-item"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            ⏱️
+                        </span>
+
+                        <span class="label">
+                            Uptime
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="uptime-status"
+                        class="value"
+                    >
+                        WAITING
+                    </span>
+
+                </div>
+
+
+            </div>
+
         </div>
 
+    </details>
 
-        <div class="system-grid">
 
 
-            <!-- SERVER -->
+    <!-- =====================================================
+         SYSTEM TEMPERATURE
+         ===================================================== -->
 
-            <div
-                id="server-card"
-                class="system-item"
-            >
+    <details
+        class="status-card collapsible-section"
+        open
+    >
 
-                <div class="metric-top">
+        <summary class="section-summary">
 
-                    <span class="metric-icon">
-                        🖥️
-                    </span>
+            <div class="section-heading">
 
-                    <span class="label">
-                        Server
-                    </span>
-
-                </div>
-
-                <span
-                    id="server-status"
-                    class="value"
-                >
-                    WAITING
+                <span class="section-icon">
+                    🌡️
                 </span>
 
-            </div>
+                <div>
 
+                    <h2>
+                        System Temperature
+                    </h2>
 
-            <!-- SENSORS -->
-
-            <div
-                id="sensor-status-card"
-                class="system-item"
-            >
-
-                <div class="metric-top">
-
-                    <span class="metric-icon">
-                        🌡️
+                    <span
+                        id="last-update"
+                        class="section-subtitle"
+                    >
+                        Waiting for sensor data...
                     </span>
-
-                    <span class="label">
-                        Sensors
-                    </span>
-
-                </div>
-
-                <span
-                    id="sensor-status"
-                    class="value"
-                >
-                    WAITING
-                </span>
-
-            </div>
-
-
-            <!-- MEMORY -->
-
-            <div
-                id="memory-card"
-                class="system-item metric-resource"
-            >
-
-                <div class="metric-top">
-
-                    <span class="metric-icon">
-                        🧠
-                    </span>
-
-                    <span class="label">
-                        Memory
-                    </span>
-
-                </div>
-
-                <span
-                    id="memory-status"
-                    class="value"
-                >
-                    WAITING
-                </span>
-
-                <div class="metric-bar">
-
-                    <div
-                        id="memory-bar"
-                        class="metric-fill"
-                    ></div>
 
                 </div>
 
             </div>
 
 
-            <!-- SWAP -->
+            <div class="summary-actions">
 
-            <div
-                id="swap-card"
-                class="system-item metric-resource"
-            >
-
-                <div class="metric-top">
-
-                    <span class="metric-icon">
-                        💾
-                    </span>
-
-                    <span class="label">
-                        Swap
-                    </span>
-
-                </div>
-
-                <span
-                    id="swap-status"
-                    class="value"
+                <button
+                    id="refresh-button"
+                    type="button"
+                    onclick="
+                        event.preventDefault();
+                        event.stopPropagation();
+                    "
                 >
-                    WAITING
+
+                    <span
+                        id="refresh-icon"
+                        class="refresh-icon"
+                    >
+                        ↻
+                    </span>
+
+                    <span id="refresh-label">
+                        Refresh
+                    </span>
+
+                </button>
+
+
+                <span class="summary-chevron">
+                    ›
                 </span>
 
-                <div class="metric-bar">
+            </div>
 
-                    <div
-                        id="swap-bar"
-                        class="metric-fill"
-                    ></div>
+        </summary>
+
+
+        <div class="section-content">
+
+            <div
+                id="sensor-grid"
+                class="sensor-grid"
+            >
+
+                <div class="loading">
+
+                    <div class="loading-fox">
+                        🦊
+                    </div>
+
+                    <span>
+                        Reading hardware...
+                    </span>
 
                 </div>
 
             </div>
 
 
-            <!-- LOAD -->
+            <div class="update-meta">
 
-            <div
-                id="load-card"
-                class="system-item"
-            >
-
-                <div class="metric-top">
-
-                    <span class="metric-icon">
-                        📊
-                    </span>
-
-                    <span class="label">
-                        Load
-                    </span>
-
-                </div>
-
-                <span
-                    id="load-status"
-                    class="value"
+                <label
+                    for="refresh-interval"
                 >
-                    WAITING
+                    Refresh
+                </label>
+
+
+                <select
+                    id="refresh-interval"
+                    aria-label="Refresh interval"
+                >
+
+                    <option value="0">
+                        Manual
+                    </option>
+
+                    <option
+                        value="5000"
+                        selected
+                    >
+                        5 seconds
+                    </option>
+
+                    <option value="10000">
+                        10 seconds
+                    </option>
+
+                    <option value="30000">
+                        30 seconds
+                    </option>
+
+                    <option value="60000">
+                        60 seconds
+                    </option>
+
+                </select>
+
+
+                <span id="refresh-status">
+                    ● Auto-refresh enabled
                 </span>
 
-                <span class="metric-hint">
-                    1m / 5m / 15m
+
+                <span id="refresh-interval-label">
+                    Every 5 seconds
                 </span>
 
             </div>
-
-
-            <!-- UPTIME -->
-
-            <div
-                id="uptime-card"
-                class="system-item"
-            >
-
-                <div class="metric-top">
-
-                    <span class="metric-icon">
-                        ⏱️
-                    </span>
-
-                    <span class="label">
-                        Uptime
-                    </span>
-
-                </div>
-
-                <span
-                    id="uptime-status"
-                    class="value"
-                >
-                    WAITING
-                </span>
-
-            </div>
-
 
         </div>
 
-    </section>
+    </details>
+
 
 
     <!-- =====================================================
@@ -554,7 +828,7 @@
         </span>
 
         <span>
-            Dune Addon • v0.1.5
+            Dune Addon • v0.1.6
         </span>
 
     </footer>
@@ -563,16 +837,8 @@
 </div>
 
 
-<!-- =========================================================
-     DUNE BRIDGE
-     ========================================================= -->
 
 <script src="./dune-addon-bridge.js"></script>
-
-
-<!-- =========================================================
-     ADDON
-     ========================================================= -->
 
 <script src="./addon.js"></script>
 
