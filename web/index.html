@@ -1,11 +1,7 @@
 <!DOCTYPE html>
-<html
-    lang="en"
-    data-addon-id="fluffy-fox-status"
->
+<html lang="en" data-addon-id="fluffy-fox-status">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -13,22 +9,14 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>
-        Fluffy Fox Status
-    </title>
+    <title>Fluffy Fox Status</title>
 
-    <link
-        rel="stylesheet"
-        href="./addon.css"
-    >
-
+    <link rel="stylesheet" href="./addon.css">
 </head>
-
 
 <body>
 
 <div class="container">
-
 
     <!-- =====================================================
          HEADER
@@ -54,6 +42,121 @@
 
     </header>
 
+
+    <!-- =====================================================
+         GLOBAL CONTROLS
+         ===================================================== -->
+
+    <div
+        class="status-card control-toolbar"
+        id="global-controls"
+    >
+
+        <div class="control-group">
+
+            <button
+                id="refresh-button"
+                type="button"
+            >
+
+                <span
+                    id="refresh-icon"
+                    class="refresh-icon"
+                >
+                    ↻
+                </span>
+
+                <span id="refresh-label">
+                    Refresh
+                </span>
+
+            </button>
+
+        </div>
+
+
+        <div class="control-group">
+
+            <label for="refresh-interval">
+                Refresh
+            </label>
+
+            <select
+                id="refresh-interval"
+                aria-label="Refresh interval"
+            >
+
+                <option value="0">
+                    Manual
+                </option>
+
+                <option
+                    value="5000"
+                    selected
+                >
+                    5 seconds
+                </option>
+
+                <option value="10000">
+                    10 seconds
+                </option>
+
+                <option value="30000">
+                    30 seconds
+                </option>
+
+                <option value="60000">
+                    60 seconds
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div
+            id="refresh-status"
+            class="control-status"
+        >
+            ● Auto-refresh enabled
+        </div>
+
+
+        <div
+            id="refresh-interval-label"
+            class="control-status"
+        >
+            Every 5 seconds
+        </div>
+
+
+        <div class="control-spacer"></div>
+
+
+        <!-- =================================================
+             BACKGROUND SELECTOR
+             ================================================= -->
+
+        <div class="control-group">
+
+            <label for="background-select">
+                🖼️ Background
+            </label>
+
+            <select
+                id="background-select"
+                aria-label="Background selection"
+            >
+
+                <option value="">
+                    Loading backgrounds...
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
 
 
     <!-- =====================================================
@@ -89,9 +192,11 @@
 
 
             <span class="section-toggle">
+
                 <span class="toggle-icon">
                     ›
                 </span>
+
             </span>
 
         </summary>
@@ -132,7 +237,6 @@
                 </div>
 
 
-
                 <div class="system-item">
 
                     <div class="metric-top">
@@ -166,7 +270,6 @@
                 </div>
 
 
-
                 <div class="system-item">
 
                     <div class="metric-top">
@@ -195,7 +298,6 @@
                     </span>
 
                 </div>
-
 
 
                 <div class="system-item">
@@ -233,7 +335,6 @@
         </div>
 
     </details>
-
 
 
     <!-- =====================================================
@@ -322,7 +423,6 @@
                 </div>
 
 
-
                 <!-- MEMORY -->
 
                 <div
@@ -359,7 +459,6 @@
                     </span>
 
                 </div>
-
 
 
                 <!-- STORAGE -->
@@ -403,9 +502,84 @@
     </details>
 
 
+    <!-- =====================================================
+         SYSTEM TEMPERATURE
+         
+         MOVED ABOVE SYSTEM STATUS
+         ===================================================== -->
+
+    <details
+        class="status-card collapsible-section"
+        open
+    >
+
+        <summary class="section-summary">
+
+            <div class="section-heading">
+
+                <span class="section-icon">
+                    🌡️
+                </span>
+
+                <div>
+
+                    <h2>
+                        System Temperature
+                    </h2>
+
+                    <span
+                        id="last-update"
+                        class="section-subtitle"
+                    >
+                        Waiting for sensor data...
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <span class="section-toggle">
+
+                <span class="toggle-icon">
+                    ›
+                </span>
+
+            </span>
+
+        </summary>
+
+
+        <div class="section-content">
+
+            <div
+                id="sensor-grid"
+                class="sensor-grid"
+            >
+
+                <div class="loading">
+
+                    <div class="loading-fox">
+                        🦊
+                    </div>
+
+                    <span>
+                        Reading hardware...
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </details>
+
 
     <!-- =====================================================
          SYSTEM STATUS
+         
+         MOVED BELOW SYSTEM TEMPERATURE
          ===================================================== -->
 
     <details
@@ -481,7 +655,6 @@
                 </div>
 
 
-
                 <!-- SENSORS -->
 
                 <div
@@ -510,7 +683,6 @@
                     </span>
 
                 </div>
-
 
 
                 <!-- MEMORY -->
@@ -553,7 +725,6 @@
                 </div>
 
 
-
                 <!-- SWAP -->
 
                 <div
@@ -594,7 +765,6 @@
                 </div>
 
 
-
                 <!-- LOAD -->
 
                 <div
@@ -628,7 +798,6 @@
                     </span>
 
                 </div>
-
 
 
                 <!-- UPTIME -->
@@ -667,156 +836,6 @@
 
     </details>
 
-
-
-    <!-- =====================================================
-         SYSTEM TEMPERATURE
-         ===================================================== -->
-
-    <details
-        class="status-card collapsible-section"
-        open
-    >
-
-        <summary class="section-summary">
-
-            <div class="section-heading">
-
-                <span class="section-icon">
-                    🌡️
-                </span>
-
-                <div>
-
-                    <h2>
-                        System Temperature
-                    </h2>
-
-                    <span
-                        id="last-update"
-                        class="section-subtitle"
-                    >
-                        Waiting for sensor data...
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <div class="summary-actions">
-
-                <button
-                    id="refresh-button"
-                    type="button"
-                    onclick="
-                        event.preventDefault();
-                        event.stopPropagation();
-                    "
-                >
-
-                    <span
-                        id="refresh-icon"
-                        class="refresh-icon"
-                    >
-                        ↻
-                    </span>
-
-                    <span id="refresh-label">
-                        Refresh
-                    </span>
-
-                </button>
-
-
-                <span class="summary-chevron">
-                    ›
-                </span>
-
-            </div>
-
-        </summary>
-
-
-        <div class="section-content">
-
-            <div
-                id="sensor-grid"
-                class="sensor-grid"
-            >
-
-                <div class="loading">
-
-                    <div class="loading-fox">
-                        🦊
-                    </div>
-
-                    <span>
-                        Reading hardware...
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <div class="update-meta">
-
-                <label
-                    for="refresh-interval"
-                >
-                    Refresh
-                </label>
-
-
-                <select
-                    id="refresh-interval"
-                    aria-label="Refresh interval"
-                >
-
-                    <option value="0">
-                        Manual
-                    </option>
-
-                    <option
-                        value="5000"
-                        selected
-                    >
-                        5 seconds
-                    </option>
-
-                    <option value="10000">
-                        10 seconds
-                    </option>
-
-                    <option value="30000">
-                        30 seconds
-                    </option>
-
-                    <option value="60000">
-                        60 seconds
-                    </option>
-
-                </select>
-
-
-                <span id="refresh-status">
-                    ● Auto-refresh enabled
-                </span>
-
-
-                <span id="refresh-interval-label">
-                    Every 5 seconds
-                </span>
-
-            </div>
-
-        </div>
-
-    </details>
-
-
-
     <!-- =====================================================
          FOOTER
          ===================================================== -->
@@ -826,9 +845,15 @@
         <span>
             🦊 Fluffy Fox Status
         </span>
+		
+		<span>
+			Built by SugarFluff With <span class="heart">💜</span>
+			For The Docker Community.
+		
+		</span>
 
         <span>
-            Dune Addon • v0.2.0
+            Dune Addon • v0.2.1
         </span>
 
     </footer>
@@ -837,10 +862,554 @@
 </div>
 
 
+<!-- =========================================================
+     BACKGROUND SELECTOR
+     MANUAL BACKGROUND LIST
 
-<script src="./dune-addon-bridge.js"></script>
+     IMPORTANT:
+     Background files live in:
 
-<script src="./addon.js"></script>
+         web/bg/
+
+     Add new filenames to BACKGROUNDS below.
+     No directory scanning is used.
+     ========================================================= -->
+
+<script>
+
+(function () {
+
+    "use strict";
+
+
+    const backgroundSelect =
+        document.getElementById(
+            "background-select"
+        );
+
+
+    const STORAGE_KEY =
+        "fluffy-fox-status-background";
+
+
+    /*
+     * Default background.
+     *
+     * This file should exist at:
+     *
+     * ./bg/fluffy-fox-status-bg.png
+     */
+
+    const DEFAULT_BACKGROUND =
+        "FluffyFoxStatusMain.png";
+
+
+    /*
+     * Background folder.
+     */
+
+    const BACKGROUND_FOLDER =
+        "./bg/";
+
+
+    /*
+     * =====================================================
+     * MANUAL BACKGROUND LIST
+     * =====================================================
+     *
+     * Add every selectable background filename here.
+     *
+     * The actual files must exist inside:
+     *
+     * web/bg/
+     *
+     * =====================================================
+     */
+
+    const BACKGROUNDS = [
+
+        "FluffyFoxStatusSub.png",
+		"FluffyFoxStatusMain.png",
+		"DuneAwakening.png",
+		"Vixens-Desert.png",
+		"Docker.png",
+		"GreenStone.png"
+
+    ];
+
+
+    /*
+     * Allowed background image formats.
+     */
+
+    const IMAGE_EXTENSIONS = [
+
+        ".png",
+
+        ".jpg",
+
+        ".jpeg",
+
+        ".webp",
+
+        ".gif",
+
+        ".avif"
+
+    ];
+
+
+    /*
+     * Convert a filename into a nicer
+     * human-readable dropdown label.
+     */
+
+    function formatBackgroundName(
+        filename
+    ) {
+
+        const withoutExtension =
+            filename.replace(
+                /\.[^/.]+$/,
+                ""
+            );
+
+
+        return withoutExtension
+
+            .replace(
+                /[_-]+/g,
+                " "
+            )
+
+            .replace(
+                /\s+/g,
+                " "
+            )
+
+            .trim()
+
+            .replace(
+                /\b\w/g,
+                character =>
+                    character.toUpperCase()
+            );
+
+    }
+
+
+    /*
+     * Make sure the filename is safe.
+     */
+
+    function sanitizeFilename(
+        filename
+    ) {
+
+        if (
+            typeof filename !== "string"
+        ) {
+
+            return "";
+
+        }
+
+
+        return filename
+
+            .replaceAll(
+                "\\",
+                ""
+            )
+
+            .replaceAll(
+                "..",
+                ""
+            )
+
+            .replace(
+                /^\/+/,
+                ""
+            )
+
+            .trim();
+
+    }
+
+
+    /*
+     * Check whether a filename
+     * is an allowed image.
+     */
+
+    function isImageFile(
+        filename
+    ) {
+
+        const lower =
+            filename.toLowerCase();
+
+
+        return IMAGE_EXTENSIONS.some(
+            extension =>
+                lower.endsWith(
+                    extension
+                )
+        );
+
+    }
+
+
+    /*
+     * Create the dropdown option.
+     */
+
+    function createBackgroundOption(
+        filename
+    ) {
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+
+        option.value =
+            filename;
+
+
+        option.textContent =
+            formatBackgroundName(
+                filename
+            );
+
+
+        return option;
+
+    }
+
+
+    /*
+     * Apply selected background.
+     */
+
+    function setBackground(
+        filename
+    ) {
+
+        filename =
+            sanitizeFilename(
+                filename
+            );
+
+
+        if (
+            !filename
+        ) {
+
+            filename =
+                DEFAULT_BACKGROUND;
+
+        }
+
+
+        const backgroundPath =
+            BACKGROUND_FOLDER +
+            filename;
+
+
+        document.body.style.setProperty(
+            "--fox-background-image",
+            `url("${backgroundPath}")`
+        );
+
+
+        try {
+
+            localStorage.setItem(
+                STORAGE_KEY,
+                filename
+            );
+
+        }
+
+        catch (
+            error
+        ) {
+
+            /*
+             * Some embedded environments
+             * may block localStorage.
+             *
+             * The background still works
+             * for the current session.
+             */
+
+        }
+
+    }
+
+
+    /*
+     * =====================================================
+     * POPULATE BACKGROUND DROPDOWN
+     * =====================================================
+     *
+     * IMPORTANT:
+     *
+     * We intentionally DO NOT use:
+     *
+     *     fetch("./bg/")
+     *
+     * Browsers cannot reliably enumerate a local
+     * filesystem directory from a file:// page.
+     *
+     * Instead, BACKGROUNDS above is the source of truth.
+     * =====================================================
+     */
+
+    function detectBackgrounds() {
+
+        if (
+            !backgroundSelect
+        ) {
+
+            return;
+
+        }
+
+
+        /*
+         * Clean the manually registered list.
+         */
+
+        const detectedFiles = [
+
+            ...new Set(
+
+                BACKGROUNDS
+
+                    .map(
+                        filename =>
+                            sanitizeFilename(
+                                filename
+                            )
+                    )
+
+                    .filter(
+                        filename =>
+                            isImageFile(
+                                filename
+                            )
+                    )
+
+            )
+
+        ];
+
+
+        /*
+         * Make sure the default background
+         * is always available.
+         */
+
+        if (
+            !detectedFiles.includes(
+                DEFAULT_BACKGROUND
+            )
+        ) {
+
+            detectedFiles.unshift(
+                DEFAULT_BACKGROUND
+            );
+
+        }
+
+
+        /*
+         * Sort alphabetically while keeping
+         * the default background first.
+         */
+
+        detectedFiles.sort(
+            (
+                a,
+                b
+            ) => {
+
+                if (
+                    a === DEFAULT_BACKGROUND
+                ) {
+
+                    return -1;
+
+                }
+
+
+                if (
+                    b === DEFAULT_BACKGROUND
+                ) {
+
+                    return 1;
+
+                }
+
+
+                return a.localeCompare(
+                    b,
+                    undefined,
+                    {
+                        numeric: true,
+                        sensitivity: "base"
+                    }
+                );
+
+            }
+        );
+
+
+        /*
+         * Clear existing dropdown options.
+         */
+
+        backgroundSelect.innerHTML =
+            "";
+
+
+        /*
+         * Add every manually registered
+         * background image.
+         */
+
+        for (
+            const filename
+            of detectedFiles
+        ) {
+
+            backgroundSelect.appendChild(
+                createBackgroundOption(
+                    filename
+                )
+            );
+
+        }
+
+
+        /*
+         * Restore previously selected
+         * background from localStorage.
+         */
+
+        let savedBackground =
+            DEFAULT_BACKGROUND;
+
+
+        try {
+
+            savedBackground =
+                localStorage.getItem(
+                    STORAGE_KEY
+                ) ||
+                DEFAULT_BACKGROUND;
+
+        }
+
+        catch (
+            error
+        ) {
+
+            savedBackground =
+                DEFAULT_BACKGROUND;
+
+        }
+
+
+        /*
+         * Use saved background when it
+         * is still registered.
+         */
+
+        if (
+            detectedFiles.includes(
+                savedBackground
+            )
+        ) {
+
+            backgroundSelect.value =
+                savedBackground;
+
+        }
+
+        else {
+
+            backgroundSelect.value =
+                DEFAULT_BACKGROUND;
+
+        }
+
+
+        /*
+         * Apply the selected background.
+         */
+
+        setBackground(
+            backgroundSelect.value
+        );
+
+    }
+
+
+    /*
+     * Background selection event.
+     */
+
+    if (
+        backgroundSelect
+    ) {
+
+        backgroundSelect.addEventListener(
+            "change",
+            function () {
+
+                setBackground(
+                    backgroundSelect.value
+                );
+
+            }
+        );
+
+    }
+
+
+    /*
+     * Populate backgrounds when
+     * the page loads.
+     */
+
+    detectBackgrounds();
+
+
+})();
+
+</script>
+
+
+<!-- =========================================================
+     DUNE BRIDGE
+     ========================================================= -->
+
+<script
+    src="./dune-addon-bridge.js"
+></script>
+
+
+<!-- =========================================================
+     FLUFFY FOX STATUS
+     ========================================================= -->
+
+<script
+    src="./addon.js"
+></script>
 
 
 </body>

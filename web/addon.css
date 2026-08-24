@@ -1,22 +1,62 @@
 :root {
 
-    --bg: #0f1115;
+    --bg:
+        #0f1115;
 
-    --panel: rgba(24, 27, 33, 0.84);
-    --panel-light: rgba(32, 36, 44, 0.90);
+    --panel:
+        rgba(
+            24,
+            27,
+            33,
+            0.84
+        );
 
-    --text: #f1f1f1;
-    --muted: #8f96a3;
+    --panel-light:
+        rgba(
+            32,
+            36,
+            44,
+            0.90
+        );
 
-    --green: #5ee88a;
-    --yellow: #ffd75e;
-    --orange: #ff9f43;
-    --red: #ff5e5e;
+    --text:
+        #f1f1f1;
 
-    --border: #2b303a;
+    --muted:
+        #8f96a3;
+
+    --green:
+        #5ee88a;
+
+    --yellow:
+        #ffd75e;
+
+    --orange:
+        #ff9f43;
+
+    --red:
+        #ff5e5e;
+
+    --border:
+        #2b303a;
 
     --shadow:
-        0 12px 35px rgba(0, 0, 0, 0.22);
+        0 12px 35px
+        rgba(
+            0,
+            0,
+            0,
+            0.22
+        );
+
+    /*
+     * Background is controlled by
+     * the Background selector in index.html.
+     */
+    --fox-background-image:
+        url(
+            "./bg/fluffy-fox-status-bg.png"
+        );
 
 }
 
@@ -26,40 +66,84 @@
  * --------------------------------------------------------- */
 
 * {
-    box-sizing: border-box;
+
+    box-sizing:
+        border-box;
+
 }
 
 
-html {
-    min-height: 100%;
+html,
+body {
+
+    width:
+        100%;
+
+    height:
+        100%;
+
+    min-width:
+        100%;
+
+    min-height:
+        100%;
+
 }
 
 
 body {
 
-    margin: 0;
+    margin:
+        0;
 
-    min-height: 100vh;
+    min-height:
+        100vh;
 
-    background-color: var(--bg);
+    background-color:
+        var(--bg);
 
     background-image:
-        linear-gradient(
-            rgba(10, 5, 15, 0.58),
-            rgba(10, 5, 15, 0.58)
-        ),
-        url("./fluffy-fox-status-bg.png");
 
-    background-size: cover;
+        linear-gradient(
+            rgba(
+                10,
+                5,
+                15,
+                0.58
+            ),
+            rgba(
+                10,
+                5,
+                15,
+                0.58
+            )
+        ),
+
+        var(
+            --fox-background-image
+        );
+
+    /*
+     * Stretch the selected PNG to the
+     * actual visible viewport size.
+     *
+     * 100vw = viewport width
+     * 100vh = viewport height
+     */
+    background-size:
+        100vw 100vh;
 
     background-position:
-        center center;
+        top left;
 
-    background-repeat: no-repeat;
+    background-repeat:
+        no-repeat;
 
-    background-attachment: fixed;
+    background-attachment:
+        fixed;
 
-    color: var(--text);
+    color:
+        var(--text);
 
     font-family:
         Inter,
@@ -75,15 +159,20 @@ body {
 
 .container {
 
-    position: relative;
+    position:
+        relative;
 
-    z-index: 1;
+    z-index:
+        1;
 
-    max-width: 1100px;
+    max-width:
+        1100px;
 
-    margin: auto;
+    margin:
+        auto;
 
-    padding: 24px;
+    padding:
+        24px;
 
 }
 
@@ -94,60 +183,221 @@ body {
 
 header {
 
-    display: flex;
+    display:
+        flex;
 
-    align-items: center;
+    align-items:
+        center;
 
-    gap: 14px;
+    gap:
+        14px;
 
-    margin-bottom: 18px;
+    margin-bottom:
+        12px;
 
 }
 
 
 .fox {
 
-    font-size: 46px;
+    font-size:
+        46px;
 
-    line-height: 1;
+    line-height:
+        1;
 
 }
 
 
 .header-content {
 
-    min-width: 0;
+    min-width:
+        0;
 
 }
 
 
 h1 {
 
-    margin: 0;
+    margin:
+        0;
 
-    font-size: 28px;
+    font-size:
+        28px;
 
-    letter-spacing: -0.4px;
+    letter-spacing:
+        -0.4px;
 
 }
 
 
 h2 {
 
-    margin: 0;
+    margin:
+        0;
 
-    font-size: 19px;
+    font-size:
+        19px;
 
-    line-height: 1.2;
+    line-height:
+        1.2;
 
 }
 
 
 p {
 
-    margin: 5px 0 0 0;
+    margin:
+        5px 0 0 0;
 
-    color: var(--muted);
+    color:
+        var(--muted);
+
+}
+
+
+/* ---------------------------------------------------------
+ * GLOBAL CONTROL BAR
+ * --------------------------------------------------------- */
+
+.control-toolbar {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        8px 12px;
+
+    padding:
+        10px 12px;
+
+    margin-bottom:
+        12px;
+
+}
+
+
+.control-group {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        7px;
+
+}
+
+
+.control-group label {
+
+    color:
+        var(--muted);
+
+    font-size:
+        10px;
+
+    font-weight:
+        600;
+
+    white-space:
+        nowrap;
+
+}
+
+
+.control-status {
+
+    color:
+        var(--muted);
+
+    font-size:
+        10px;
+
+    white-space:
+        nowrap;
+
+}
+
+
+#refresh-status {
+
+    color:
+        var(--green);
+
+}
+
+
+.control-spacer {
+
+    flex:
+        1 1 auto;
+
+    min-width:
+        10px;
+
+}
+
+
+/* ---------------------------------------------------------
+ * SELECT CONTROLS
+ * --------------------------------------------------------- */
+
+select {
+
+    appearance:
+        auto;
+
+    background:
+        var(--panel-light);
+
+    color:
+        var(--text);
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        7px;
+
+    padding:
+        6px 9px;
+
+    font-family:
+        inherit;
+
+    font-size:
+        10px;
+
+    cursor:
+        pointer;
+
+}
+
+
+select:hover {
+
+    border-color:
+        #3a414d;
+
+}
+
+
+select:focus {
+
+    outline:
+        none;
+
+    border-color:
+        #596170;
 
 }
 
@@ -158,23 +408,32 @@ p {
 
 .health-banner {
 
-    display: flex;
+    display:
+        flex;
 
-    align-items: center;
+    align-items:
+        center;
 
-    gap: 14px;
+    gap:
+        14px;
 
-    margin-bottom: 12px;
+    margin-bottom:
+        12px;
 
-    padding: 16px 18px;
+    padding:
+        16px 18px;
 
-    border-radius: 12px;
+    border-radius:
+        12px;
 
-    border: 1px solid var(--border);
+    border:
+        1px solid var(--border);
 
-    background: var(--panel);
+    background:
+        var(--panel);
 
-    box-shadow: var(--shadow);
+    box-shadow:
+        var(--shadow);
 
     transition:
         border-color 0.2s ease,
@@ -185,64 +444,88 @@ p {
 
 .health-icon {
 
-    width: 13px;
+    width:
+        13px;
 
-    height: 13px;
+    height:
+        13px;
 
-    flex: 0 0 auto;
+    flex:
+        0 0 auto;
 
-    border-radius: 50%;
+    border-radius:
+        50%;
 
-    background: var(--muted);
+    background:
+        var(--muted);
 
     box-shadow:
-        0 0 0 5px rgba(143, 150, 163, 0.10);
+        0 0 0 5px
+        rgba(
+            143,
+            150,
+            163,
+            0.10
+        );
 
 }
 
 
 .health-content {
 
-    display: flex;
+    display:
+        flex;
 
-    flex-direction: column;
+    flex-direction:
+        column;
 
-    gap: 3px;
+    gap:
+        3px;
 
-    min-width: 0;
+    min-width:
+        0;
 
-    flex: 1;
+    flex:
+        1;
 
 }
 
 
 .health-content strong {
 
-    font-size: 14px;
+    font-size:
+        14px;
 
-    letter-spacing: 0.4px;
+    letter-spacing:
+        0.4px;
 
 }
 
 
 .health-content span {
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
-    font-size: 13px;
+    font-size:
+        13px;
 
 }
 
 
 .health-state {
 
-    flex: 0 0 auto;
+    flex:
+        0 0 auto;
 
-    font-size: 11px;
+    font-size:
+        11px;
 
-    font-weight: bold;
+    font-weight:
+        bold;
 
-    letter-spacing: 0.8px;
+    letter-spacing:
+        0.8px;
 
 }
 
@@ -258,25 +541,44 @@ p {
 .health-healthy {
 
     border-color:
-        rgba(94, 232, 138, 0.35);
+        rgba(
+            94,
+            232,
+            138,
+            0.35
+        );
 
 }
 
 
 .health-healthy .health-icon {
 
-    background: var(--green);
+    background:
+        var(--green);
 
     box-shadow:
-        0 0 0 5px rgba(94, 232, 138, 0.10),
-        0 0 14px rgba(94, 232, 138, 0.35);
+        0 0 0 5px
+        rgba(
+            94,
+            232,
+            138,
+            0.10
+        ),
+        0 0 14px
+        rgba(
+            94,
+            232,
+            138,
+            0.35
+        );
 
 }
 
 
 .health-healthy .health-state {
 
-    color: var(--green);
+    color:
+        var(--green);
 
 }
 
@@ -284,24 +586,37 @@ p {
 .health-warning {
 
     border-color:
-        rgba(255, 215, 94, 0.35);
+        rgba(
+            255,
+            215,
+            94,
+            0.35
+        );
 
 }
 
 
 .health-warning .health-icon {
 
-    background: var(--yellow);
+    background:
+        var(--yellow);
 
     box-shadow:
-        0 0 0 5px rgba(255, 215, 94, 0.10);
+        0 0 0 5px
+        rgba(
+            255,
+            215,
+            94,
+            0.10
+        );
 
 }
 
 
 .health-warning .health-state {
 
-    color: var(--yellow);
+    color:
+        var(--yellow);
 
 }
 
@@ -309,25 +624,44 @@ p {
 .health-critical {
 
     border-color:
-        rgba(255, 94, 94, 0.40);
+        rgba(
+            255,
+            94,
+            94,
+            0.40
+        );
 
 }
 
 
 .health-critical .health-icon {
 
-    background: var(--red);
+    background:
+        var(--red);
 
     box-shadow:
-        0 0 0 5px rgba(255, 94, 94, 0.10),
-        0 0 14px rgba(255, 94, 94, 0.35);
+        0 0 0 5px
+        rgba(
+            255,
+            94,
+            94,
+            0.10
+        ),
+        0 0 14px
+        rgba(
+            255,
+            94,
+            94,
+            0.35
+        );
 
 }
 
 
 .health-critical .health-state {
 
-    color: var(--red);
+    color:
+        var(--red);
 
 }
 
@@ -335,21 +669,28 @@ p {
 .health-error {
 
     border-color:
-        rgba(255, 159, 67, 0.35);
+        rgba(
+            255,
+            159,
+            67,
+            0.35
+        );
 
 }
 
 
 .health-error .health-icon {
 
-    background: var(--orange);
+    background:
+        var(--orange);
 
 }
 
 
 .health-error .health-state {
 
-    color: var(--orange);
+    color:
+        var(--orange);
 
 }
 
@@ -360,21 +701,29 @@ p {
 
 .status-card {
 
-    background: var(--panel);
+    background:
+        var(--panel);
 
-    border: 1px solid var(--border);
+    border:
+        1px solid var(--border);
 
-    border-radius: 12px;
+    border-radius:
+        12px;
 
-    padding: 16px;
+    padding:
+        16px;
 
-    margin-bottom: 12px;
+    margin-bottom:
+        12px;
 
-    backdrop-filter: blur(5px);
+    backdrop-filter:
+        blur(5px);
 
-    -webkit-backdrop-filter: blur(5px);
+    -webkit-backdrop-filter:
+        blur(5px);
 
-    box-shadow: var(--shadow);
+    box-shadow:
+        var(--shadow);
 
 }
 
@@ -385,79 +734,178 @@ p {
 
 .section-heading {
 
-    display: flex;
+    display:
+        flex;
 
-    align-items: center;
+    align-items:
+        center;
 
-    gap: 8px;
+    gap:
+        8px;
 
 }
 
 
 .section-icon {
 
-    display: flex;
+    display:
+        flex;
 
-    align-items: center;
+    align-items:
+        center;
 
-    justify-content: center;
+    justify-content:
+        center;
 
-    width: 30px;
+    width:
+        30px;
 
-    height: 30px;
+    height:
+        30px;
 
-    border-radius: 8px;
+    border-radius:
+        8px;
 
-    background: rgba(255, 255, 255, 0.045);
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.045
+        );
 
-    border: 1px solid var(--border);
+    border:
+        1px solid var(--border);
 
-    font-size: 15px;
+    font-size:
+        15px;
 
 }
 
 
 .section-subtitle {
 
-    display: block;
+    display:
+        block;
 
-    margin-top: 2px;
+    margin-top:
+        2px;
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
-    font-size: 10px;
+    font-size:
+        10px;
 
 }
 
 
 /* ---------------------------------------------------------
- * STATUS HEADER
+ * COLLAPSIBLE SECTIONS
  * --------------------------------------------------------- */
 
-.status-header {
+.collapsible-section {
 
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 15px;
-
-    margin-bottom: 12px;
+    overflow:
+        hidden;
 
 }
 
 
-#last-update {
+.collapsible-section > summary {
 
-    display: block;
+    cursor:
+        pointer;
 
-    margin-top: 5px;
+    list-style:
+        none;
 
-    color: var(--muted);
+}
 
-    font-size: 12px;
+
+.collapsible-section > summary::-webkit-details-marker {
+
+    display:
+        none;
+
+}
+
+
+.section-summary {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    min-height:
+        38px;
+
+    padding:
+        2px 0;
+
+}
+
+
+.section-toggle {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    width:
+        28px;
+
+    height:
+        28px;
+
+    color:
+        var(--muted);
+
+}
+
+
+.toggle-icon {
+
+    display:
+        inline-block;
+
+    font-size:
+        18px;
+
+    line-height:
+        1;
+
+    transition:
+        transform 0.15s ease;
+
+}
+
+
+.collapsible-section[open]
+.toggle-icon {
+
+    transform:
+        rotate(
+            90deg
+        );
+
+}
+
+
+.section-content {
+
+    padding-top:
+        6px;
 
 }
 
@@ -468,29 +916,41 @@ p {
 
 button {
 
-    display: inline-flex;
+    display:
+        inline-flex;
 
-    align-items: center;
+    align-items:
+        center;
 
-    justify-content: center;
+    justify-content:
+        center;
 
-    gap: 7px;
+    gap:
+        7px;
 
-    background: var(--panel-light);
+    background:
+        var(--panel-light);
 
-    color: var(--text);
+    color:
+        var(--text);
 
-    border: 1px solid var(--border);
+    border:
+        1px solid var(--border);
 
-    border-radius: 8px;
+    border-radius:
+        8px;
 
-    padding: 8px 12px;
+    padding:
+        8px 12px;
 
-    font-size: 12px;
+    font-size:
+        12px;
 
-    font-weight: 600;
+    font-weight:
+        600;
 
-    cursor: pointer;
+    cursor:
+        pointer;
 
     transition:
         background 0.15s ease,
@@ -500,43 +960,60 @@ button {
 }
 
 
+.control-toolbar button {
+
+    width:
+        auto;
+
+}
+
+
 button:hover {
 
-    background: #292e38;
+    background:
+        #292e38;
 
-    border-color: #3a414d;
+    border-color:
+        #3a414d;
 
 }
 
 
 button:active {
 
-    transform: translateY(1px);
+    transform:
+        translateY(1px);
 
 }
 
 
 button:disabled {
 
-    opacity: 0.55;
+    opacity:
+        0.55;
 
-    cursor: wait;
+    cursor:
+        wait;
 
 }
 
 
 .refresh-icon {
 
-    display: inline-block;
+    display:
+        inline-block;
 
-    font-size: 14px;
+    font-size:
+        14px;
 
-    line-height: 1;
+    line-height:
+        1;
 
 }
 
 
-button:disabled .refresh-icon {
+button:disabled
+.refresh-icon {
 
     animation:
         spin 0.8s linear infinite;
@@ -550,34 +1027,46 @@ button:disabled .refresh-icon {
 
 .sensor-grid {
 
-    display: grid;
+    display:
+        grid;
 
     grid-template-columns:
         repeat(
             auto-fit,
-            minmax(180px, 1fr)
+            minmax(
+                180px,
+                1fr
+            )
         );
 
-    gap: 10px;
+    gap:
+        10px;
 
 }
 
 
 .sensor {
 
-    position: relative;
+    position:
+        relative;
 
-    overflow: hidden;
+    overflow:
+        hidden;
 
-    min-height: 0;
+    min-height:
+        0;
 
-    background: var(--panel-light);
+    background:
+        var(--panel-light);
 
-    border: 1px solid var(--border);
+    border:
+        1px solid var(--border);
 
-    border-radius: 9px;
+    border-radius:
+        9px;
 
-    padding: 12px;
+    padding:
+        12px;
 
     transition:
         transform 0.15s ease,
@@ -589,95 +1078,120 @@ button:disabled .refresh-icon {
 
 .sensor:hover {
 
-    transform: translateY(-2px);
+    transform:
+        translateY(-2px);
 
-    border-color: #3b424f;
+    border-color:
+        #3b424f;
 
 }
 
 
 .sensor::after {
 
-    content: "";
+    content:
+        "";
 
-    position: absolute;
+    position:
+        absolute;
 
-    left: 0;
+    left:
+        0;
 
-    right: 0;
+    right:
+        0;
 
-    bottom: 0;
+    bottom:
+        0;
 
-    height: 2px;
+    height:
+        2px;
 
-    background: var(--border);
+    background:
+        var(--border);
 
 }
 
 
 .sensor.normal::after {
 
-    background: var(--green);
+    background:
+        var(--green);
 
 }
 
 
 .sensor.warm::after {
 
-    background: var(--yellow);
+    background:
+        var(--yellow);
 
 }
 
 
 .sensor.hot::after {
 
-    background: var(--orange);
+    background:
+        var(--orange);
 
 }
 
 
 .sensor.critical::after {
 
-    background: var(--red);
+    background:
+        var(--red);
 
 }
 
 
 .sensor-name {
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
-    font-size: 11px;
+    font-size:
+        11px;
 
-    margin-bottom: 6px;
+    margin-bottom:
+        6px;
 
 }
 
 
 .sensor-temperature {
 
-    font-size: 28px;
+    font-size:
+        28px;
 
-    font-weight: bold;
+    font-weight:
+        bold;
 
-    line-height: 1;
+    line-height:
+        1;
 
-    letter-spacing: -0.5px;
+    letter-spacing:
+        -0.5px;
 
 }
 
 
 .sensor-state {
 
-    display: inline-block;
+    display:
+        inline-block;
 
-    margin-top: 6px;
+    margin-top:
+        6px;
 
-    font-size: 10px;
+    font-size:
+        10px;
 
-    font-weight: bold;
+    font-weight:
+        bold;
 
-    letter-spacing: 0.7px;
+    letter-spacing:
+        0.7px;
 
 }
 
@@ -688,28 +1202,32 @@ button:disabled .refresh-icon {
 
 .normal {
 
-    color: var(--green);
+    color:
+        var(--green);
 
 }
 
 
 .warm {
 
-    color: var(--yellow);
+    color:
+        var(--yellow);
 
 }
 
 
 .hot {
 
-    color: var(--orange);
+    color:
+        var(--orange);
 
 }
 
 
 .critical {
 
-    color: var(--red);
+    color:
+        var(--red);
 
 }
 
@@ -720,24 +1238,31 @@ button:disabled .refresh-icon {
 
 .update-meta {
 
-    display: flex;
+    display:
+        flex;
 
-    justify-content: space-between;
+    justify-content:
+        space-between;
 
-    gap: 15px;
+    gap:
+        15px;
 
-    margin-top: 10px;
+    margin-top:
+        10px;
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
-    font-size: 10px;
+    font-size:
+        10px;
 
 }
 
 
 .update-meta span:first-child {
 
-    color: var(--green);
+    color:
+        var(--green);
 
 }
 
@@ -748,39 +1273,51 @@ button:disabled .refresh-icon {
 
 .section-title-row {
 
-    margin-bottom: 12px;
+    margin-bottom:
+        12px;
 
 }
 
 
 .system-grid {
 
-    display: grid;
+    display:
+        grid;
 
     grid-template-columns:
         repeat(
             auto-fit,
-            minmax(180px, 1fr)
+            minmax(
+                180px,
+                1fr
+            )
         );
 
-    gap: 10px;
+    gap:
+        10px;
 
 }
 
 
 .system-item {
 
-    position: relative;
+    position:
+        relative;
 
-    min-height: 92px;
+    min-height:
+        92px;
 
-    background: var(--panel-light);
+    background:
+        var(--panel-light);
 
-    border: 1px solid var(--border);
+    border:
+        1px solid var(--border);
 
-    border-radius: 9px;
+    border-radius:
+        9px;
 
-    padding: 12px;
+    padding:
+        12px;
 
     transition:
         transform 0.15s ease,
@@ -791,85 +1328,105 @@ button:disabled .refresh-icon {
 
 .system-item:hover {
 
-    transform: translateY(-2px);
+    transform:
+        translateY(-2px);
 
-    border-color: #3b424f;
+    border-color:
+        #3b424f;
 
 }
 
 
 .metric-top {
 
-    display: flex;
+    display:
+        flex;
 
-    align-items: center;
+    align-items:
+        center;
 
-    gap: 6px;
+    gap:
+        6px;
 
-    margin-bottom: 8px;
+    margin-bottom:
+        8px;
 
 }
 
 
 .metric-icon {
 
-    font-size: 13px;
+    font-size:
+        13px;
 
 }
 
 
 .label {
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
-    font-size: 10px;
+    font-size:
+        10px;
 
 }
 
 
 .value {
 
-    display: block;
+    display:
+        block;
 
-    font-size: 17px;
+    font-size:
+        17px;
 
-    font-weight: bold;
+    font-weight:
+        bold;
 
-    line-height: 1.15;
+    line-height:
+        1.15;
 
 }
 
 
 .metric-hint {
 
-    display: block;
+    display:
+        block;
 
-    margin-top: 4px;
+    margin-top:
+        4px;
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
-    font-size: 9px;
+    font-size:
+        9px;
 
 }
 
 
 .online {
 
-    color: var(--green);
+    color:
+        var(--green);
 
 }
 
 
 .warning {
 
-    color: var(--yellow);
+    color:
+        var(--yellow);
 
 }
 
 
 .error {
 
-    color: var(--red);
+    color:
+        var(--red);
 
 }
 
@@ -880,30 +1437,45 @@ button:disabled .refresh-icon {
 
 .metric-bar {
 
-    width: 100%;
+    width:
+        100%;
 
-    height: 4px;
+    height:
+        4px;
 
-    margin-top: 8px;
+    margin-top:
+        8px;
 
-    overflow: hidden;
+    overflow:
+        hidden;
 
-    border-radius: 99px;
+    border-radius:
+        99px;
 
-    background: rgba(255, 255, 255, 0.07);
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.07
+        );
 
 }
 
 
 .metric-fill {
 
-    width: 0%;
+    width:
+        0%;
 
-    height: 100%;
+    height:
+        100%;
 
-    border-radius: inherit;
+    border-radius:
+        inherit;
 
-    background: var(--green);
+    background:
+        var(--green);
 
     transition:
         width 0.35s ease,
@@ -914,21 +1486,24 @@ button:disabled .refresh-icon {
 
 .metric-fill.warning {
 
-    background: var(--yellow);
+    background:
+        var(--yellow);
 
 }
 
 
 .metric-fill.hot {
 
-    background: var(--orange);
+    background:
+        var(--orange);
 
 }
 
 
 .metric-fill.critical {
 
-    background: var(--red);
+    background:
+        var(--red);
 
 }
 
@@ -939,40 +1514,102 @@ button:disabled .refresh-icon {
 
 .loading {
 
-    grid-column: 1 / -1;
+    grid-column:
+        1 / -1;
 
-    display: flex;
+    display:
+        flex;
 
-    flex-direction: column;
+    flex-direction:
+        column;
 
-    align-items: center;
+    align-items:
+        center;
 
-    justify-content: center;
+    justify-content:
+        center;
 
-    gap: 8px;
+    gap:
+        8px;
 
-    min-height: 110px;
+    min-height:
+        110px;
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
-    text-align: center;
+    text-align:
+        center;
 
 }
 
 
 .loading-fox {
 
-    font-size: 30px;
+    font-size:
+        30px;
 
     animation:
-        loading-bob 1.4s ease-in-out infinite;
+        loading-bob
+        1.4s
+        ease-in-out
+        infinite;
 
 }
 
 
 .loading-error {
 
-    color: var(--orange);
+    color:
+        var(--orange);
+
+}
+
+
+/* ---------------------------------------------------------
+ * HARDWARE LISTS
+ * --------------------------------------------------------- */
+
+.hardware-list {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        2px;
+
+}
+
+
+.hardware-list-item,
+.hardware-list-empty {
+
+    color:
+        var(--muted);
+
+    font-size:
+        10px;
+
+    line-height:
+        1.15;
+
+}
+
+
+/* ---------------------------------------------------------
+ * COMPACT SYSTEM INFO
+ * --------------------------------------------------------- */
+
+.system-item-large {
+
+    min-height:
+        0;
+
+    padding:
+        12px;
 
 }
 
@@ -983,128 +1620,23 @@ button:disabled .refresh-icon {
 
 footer {
 
-    display: flex;
+    display:
+        flex;
 
-    justify-content: space-between;
+    justify-content:
+        space-between;
 
-    gap: 15px;
+    gap:
+        15px;
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
-    font-size: 10px;
+    font-size:
+        10px;
 
-    padding: 4px 2px 10px;
-
-}
-
-
-/* ---------------------------------------------------------
- * COMPACT UI REFINEMENTS
- * --------------------------------------------------------- */
-
-/*
- * These selectors support the expandable section layout
- * used by the redesigned HTML.
- */
-
-.section-summary {
-
-    min-height: 38px;
-
-    padding: 2px 0;
-
-}
-
-
-.section-content {
-
-    padding-top: 6px;
-
-}
-
-
-/* Compact section heading */
-
-.section-heading {
-
-    gap: 8px;
-
-}
-
-
-.section-icon {
-
-    width: 30px;
-
-    height: 30px;
-
-    font-size: 15px;
-
-}
-
-
-.section-subtitle {
-
-    margin-top: 2px;
-
-    font-size: 10px;
-
-}
-
-
-/* Compact System Info cards */
-
-.system-item-large {
-
-    min-height: 0;
-
-    padding: 12px;
-
-}
-
-
-/* Hardware identifier lists */
-
-.hardware-list {
-
-    gap: 2px;
-
-}
-
-
-.hardware-list-item,
-.hardware-list-empty {
-
-    font-size: 10px;
-
-    line-height: 1.15;
-
-}
-
-
-/* Compact section controls */
-
-.summary-actions {
-
-    gap: 6px;
-
-}
-
-
-.summary-actions button {
-
-    padding: 6px 9px;
-
-    font-size: 10px;
-
-}
-
-
-/* Temperature cards should stay dense */
-
-.sensor {
-
-    min-height: 0;
+    padding:
+        4px 2px 10px;
 
 }
 
@@ -1117,13 +1649,19 @@ footer {
 
     from {
 
-        transform: rotate(0deg);
+        transform:
+            rotate(
+                0deg
+            );
 
     }
 
     to {
 
-        transform: rotate(360deg);
+        transform:
+            rotate(
+                360deg
+            );
 
     }
 
@@ -1135,13 +1673,15 @@ footer {
     0%,
     100% {
 
-        opacity: 0.45;
+        opacity:
+            0.45;
 
     }
 
     50% {
 
-        opacity: 1;
+        opacity:
+            1;
 
     }
 
@@ -1153,13 +1693,19 @@ footer {
     0%,
     100% {
 
-        transform: translateY(0);
+        transform:
+            translateY(
+                0
+            );
 
     }
 
     50% {
 
-        transform: translateY(-5px);
+        transform:
+            translateY(
+                -5px
+            );
 
     }
 
@@ -1176,67 +1722,100 @@ footer {
 
     .container {
 
-        padding: 14px;
+        padding:
+            14px;
 
     }
 
 
     header {
 
-        gap: 12px;
+        gap:
+            12px;
 
-        margin-bottom: 16px;
+        margin-bottom:
+            10px;
 
     }
 
 
     .fox {
 
-        font-size: 42px;
+        font-size:
+            42px;
 
     }
 
 
     h1 {
 
-        font-size: 24px;
+        font-size:
+            24px;
 
     }
 
 
     .status-card {
 
-        padding: 14px;
+        padding:
+            14px;
 
     }
 
 
-    .status-header {
+    .control-toolbar {
 
-        align-items: stretch;
+        align-items:
+            stretch;
 
-        flex-direction: column;
-
-    }
-
-
-    button {
-
-        width: 100%;
+        flex-direction:
+            column;
 
     }
 
 
-    .health-banner {
+    .control-group {
 
-        align-items: flex-start;
+        width:
+            100%;
+
+        justify-content:
+            space-between;
 
     }
 
 
-    .health-state {
+    .control-group select {
 
-        display: none;
+        flex:
+            1;
+
+        min-width:
+            0;
+
+    }
+
+
+    .control-toolbar button {
+
+        width:
+            100%;
+
+    }
+
+
+    .control-spacer {
+
+        display:
+            none;
+
+    }
+
+
+    .control-status {
+
+        white-space:
+            normal;
 
     }
 
@@ -1257,20 +1836,13 @@ footer {
     }
 
 
-    .update-meta {
-
-        flex-direction: column;
-
-        gap: 5px;
-
-    }
-
-
     footer {
 
-        flex-direction: column;
+        flex-direction:
+            column;
 
-        gap: 5px;
+        gap:
+            5px;
 
     }
 
