@@ -3,27 +3,45 @@
     --bg:
         #0f1115;
 
+    /*
+     * GLASS
+     *
+     * Slightly tinted for readability while
+     * keeping the background artwork visible.
+     */
     --panel:
         rgba(
-            24,
-            27,
-            33,
-            0.84
+            18,
+            21,
+            30,
+            0.28
         );
 
     --panel-light:
         rgba(
-            32,
-            36,
-            44,
-            0.90
+            28,
+            31,
+            40,
+            0.20
         );
 
+    /*
+     * NEUTRAL TEXT PALETTE
+     *
+     * Avoid pure white so text remains comfortable
+     * against different background artwork.
+     */
     --text:
-        #f1f1f1;
+        #f4f5f7;
+
+    --text-soft:
+        #e3e6eb;
+
+    --text-muted:
+        #c9cdd4;
 
     --muted:
-        #8f96a3;
+        #c9cdd4;
 
     --green:
         #5ee88a;
@@ -38,15 +56,23 @@
         #ff5e5e;
 
     --border:
-        #2b303a;
+        rgba(
+            255,
+            255,
+            255,
+            0.075
+        );
 
+    /*
+     * Very soft shadow.
+     */
     --shadow:
-        0 12px 35px
+        0 8px 24px
         rgba(
             0,
             0,
             0,
-            0.22
+            0.10
         );
 
     /*
@@ -57,19 +83,16 @@
         url(
             "./bg/fluffy-fox-status-bg.png"
         );
-
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * GLOBAL
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 * {
-
     box-sizing:
         border-box;
-
 }
 
 
@@ -87,7 +110,6 @@ body {
 
     min-height:
         100%;
-
 }
 
 
@@ -102,6 +124,10 @@ body {
     background-color:
         var(--bg);
 
+    /*
+     * Light overlay.
+     * Artwork remains clearly visible.
+     */
     background-image:
 
         linear-gradient(
@@ -109,13 +135,13 @@ body {
                 10,
                 5,
                 15,
-                0.58
+                0.12
             ),
             rgba(
                 10,
                 5,
                 15,
-                0.58
+                0.12
             )
         ),
 
@@ -123,13 +149,6 @@ body {
             --fox-background-image
         );
 
-    /*
-     * Stretch the selected PNG to the
-     * actual visible viewport size.
-     *
-     * 100vw = viewport width
-     * 100vh = viewport height
-     */
     background-size:
         100vw 100vh;
 
@@ -150,30 +169,43 @@ body {
         Arial,
         sans-serif;
 
+    text-rendering:
+        optimizeLegibility;
+
+    -webkit-font-smoothing:
+        antialiased;
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * MAIN CONTAINER
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .container {
-    position: relative;
-    z-index: 1;
 
-    width: min(
-        840px,
-        calc(100% - 20px)
-    );
+    position:
+        relative;
 
-    margin: 0 auto;
-    padding: 10px 0;
+    z-index:
+        1;
+
+    width:
+        min(
+            840px,
+            calc(100% - 20px)
+        );
+
+    margin:
+        0 auto;
+
+    padding:
+        10px 0;
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * HEADER
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 header {
 
@@ -184,22 +216,31 @@ header {
         center;
 
     gap:
-        14px;
-
-    margin-bottom:
         12px;
 
+    margin-bottom:
+        11px;
 }
 
 
 .fox {
 
     font-size:
-        46px;
+        42px;
 
     line-height:
         1;
 
+    filter:
+        drop-shadow(
+            0 2px 5px
+            rgba(
+                0,
+                0,
+                0,
+                0.18
+            )
+        );
 }
 
 
@@ -207,7 +248,6 @@ header {
 
     min-width:
         0;
-
 }
 
 
@@ -216,12 +256,26 @@ h1 {
     margin:
         0;
 
+    color:
+        var(--text);
+
     font-size:
-        28px;
+        26px;
+
+    font-weight:
+        800;
 
     letter-spacing:
-        -0.4px;
+        -0.35px;
 
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
@@ -230,29 +284,57 @@ h2 {
     margin:
         0;
 
+    color:
+        var(--text);
+
     font-size:
-        19px;
+        18px;
+
+    font-weight:
+        750;
 
     line-height:
         1.2;
 
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
 p {
 
     margin:
-        5px 0 0 0;
+        4px 0 0 0;
 
     color:
-        var(--muted);
+        var(--text-muted);
 
+    font-size:
+        11px;
+
+    font-weight:
+        500;
+
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * GLOBAL CONTROL BAR
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .control-toolbar {
 
@@ -266,14 +348,48 @@ p {
         wrap;
 
     gap:
-        8px 12px;
+        7px 11px;
 
     padding:
-        10px 12px;
+        9px 11px;
 
     margin-bottom:
-        12px;
+        11px;
 
+    background:
+        rgba(
+            18,
+            21,
+            30,
+            0.30
+        );
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.06
+        );
+
+    border-radius:
+        10px;
+
+    backdrop-filter:
+        blur(2px);
+
+    -webkit-backdrop-filter:
+        blur(2px);
+
+    box-shadow:
+        0 5px 16px
+        rgba(
+            0,
+            0,
+            0,
+            0.07
+        );
 }
 
 
@@ -287,14 +403,38 @@ p {
 
     gap:
         7px;
-
 }
 
 
 .control-group label {
 
     color:
-        var(--muted);
+        var(--text-soft);
+
+    font-size:
+        10px;
+
+    font-weight:
+        700;
+
+    white-space:
+        nowrap;
+
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
+}
+
+
+.control-status {
+
+    color:
+        var(--text-muted);
 
     font-size:
         10px;
@@ -305,20 +445,14 @@ p {
     white-space:
         nowrap;
 
-}
-
-
-.control-status {
-
-    color:
-        var(--muted);
-
-    font-size:
-        10px;
-
-    white-space:
-        nowrap;
-
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
@@ -326,7 +460,6 @@ p {
 
     color:
         var(--green);
-
 }
 
 
@@ -337,27 +470,40 @@ p {
 
     min-width:
         10px;
-
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * SELECT CONTROLS
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 select {
 
     appearance:
         auto;
 
+    /*
+     * Match the rest of the glass UI.
+     */
     background:
-        var(--panel-light);
+        rgba(
+            18,
+            21,
+            30,
+            0.30
+        );
 
     color:
         var(--text);
 
     border:
-        1px solid var(--border);
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.08
+        );
 
     border-radius:
         7px;
@@ -371,17 +517,96 @@ select {
     font-size:
         10px;
 
+    font-weight:
+        650;
+
     cursor:
         pointer;
 
+    /*
+     * Keep the closed selector consistent
+     * with the other glass panels.
+     */
+    backdrop-filter:
+        blur(2px);
+
+    -webkit-backdrop-filter:
+        blur(2px);
+
+    /*
+     * Tell Chromium/Windows that this control
+     * should use a dark UI instead of a white
+     * native-looking popup where supported.
+     */
+    color-scheme:
+        dark;
+
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
+}
+
+
+/*
+ * Dropdown menu items.
+ *
+ * Chromium supports background/color on <option>
+ * even though the popup itself is still partially
+ * controlled by the operating system.
+ */
+select option {
+
+    background:
+        #12151e;
+
+    color:
+        #f4f5f7;
+
+    font-family:
+        inherit;
+
+    font-size:
+        10px;
+
+    font-weight:
+        650;
+}
+
+
+select option:checked {
+
+    background:
+        #1c202a;
+
+    color:
+        #f4f5f7;
+}
+
+
+select option:hover {
+
+    background:
+        #242936;
+
+    color:
+        #ffffff;
 }
 
 
 select:hover {
 
     border-color:
-        #3a414d;
-
+        rgba(
+            255,
+            255,
+            255,
+            0.14
+        );
 }
 
 
@@ -391,14 +616,45 @@ select:focus {
         none;
 
     border-color:
-        #596170;
-
+        rgba(
+            255,
+            255,
+            255,
+            0.20
+        );
 }
 
 
-/* ---------------------------------------------------------
+select:hover {
+
+    border-color:
+        rgba(
+            255,
+            255,
+            255,
+            0.14
+        );
+}
+
+
+select:focus {
+
+    outline:
+        none;
+
+    border-color:
+        rgba(
+            255,
+            255,
+            255,
+            0.20
+        );
+}
+
+
+/* =========================================================
  * OVERALL HEALTH
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .health-banner {
 
@@ -409,40 +665,62 @@ select:focus {
         center;
 
     gap:
-        14px;
+        12px;
 
     margin-bottom:
-        12px;
+        11px;
 
     padding:
-        16px 18px;
+        13px 16px;
 
     border-radius:
-        12px;
+        11px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.07
+        );
 
     background:
-        var(--panel);
+        rgba(
+            18,
+            21,
+            30,
+            0.30
+        );
+
+    backdrop-filter:
+        blur(2px);
+
+    -webkit-backdrop-filter:
+        blur(2px);
 
     box-shadow:
-        var(--shadow);
+        0 6px 18px
+        rgba(
+            0,
+            0,
+            0,
+            0.07
+        );
 
     transition:
         border-color 0.2s ease,
         background 0.2s ease;
-
 }
 
 
 .health-icon {
 
     width:
-        12px;
+        11px;
 
     height:
-        12px;
+        11px;
 
     flex:
         0 0 auto;
@@ -454,14 +732,13 @@ select:focus {
         var(--muted);
 
     box-shadow:
-        0 0 0 5px
+        0 0 0 4px
         rgba(
             143,
             150,
             163,
-            0.10
+            0.07
         );
-
 }
 
 
@@ -474,36 +751,60 @@ select:focus {
         column;
 
     gap:
-        3px;
+        2px;
 
     min-width:
         0;
 
     flex:
         1;
-
 }
 
 
 .health-content strong {
 
+    color:
+        var(--text);
+
     font-size:
         14px;
 
-    letter-spacing:
-        0.4px;
+    font-weight:
+        800;
 
+    letter-spacing:
+        0.25px;
+
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
 .health-content span {
 
     color:
-        var(--muted);
+        var(--text-muted);
 
     font-size:
-        13px;
+        11px;
 
+    font-weight:
+        550;
+
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
@@ -513,22 +814,32 @@ select:focus {
         0 0 auto;
 
     font-size:
-        11px;
+        10px;
 
     font-weight:
-        bold;
+        800;
 
     letter-spacing:
-        0.8px;
+        0.7px;
 
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
-.health-loading .health-icon {
+.health-loading
+.health-icon {
 
     animation:
-        health-pulse 1.3s infinite;
-
+        health-pulse
+        1.3s
+        infinite;
 }
 
 
@@ -539,41 +850,40 @@ select:focus {
             94,
             232,
             138,
-            0.35
+            0.22
         );
-
 }
 
 
-.health-healthy .health-icon {
+.health-healthy
+.health-icon {
 
     background:
         var(--green);
 
     box-shadow:
-        0 0 0 5px
+        0 0 0 4px
         rgba(
             94,
             232,
             138,
-            0.10
+            0.07
         ),
-        0 0 14px
+        0 0 8px
         rgba(
             94,
             232,
             138,
-            0.35
+            0.20
         );
-
 }
 
 
-.health-healthy .health-state {
+.health-healthy
+.health-state {
 
     color:
         var(--green);
-
 }
 
 
@@ -584,34 +894,33 @@ select:focus {
             255,
             215,
             94,
-            0.35
+            0.22
         );
-
 }
 
 
-.health-warning .health-icon {
+.health-warning
+.health-icon {
 
     background:
         var(--yellow);
 
     box-shadow:
-        0 0 0 5px
+        0 0 0 4px
         rgba(
             255,
             215,
             94,
-            0.10
+            0.07
         );
-
 }
 
 
-.health-warning .health-state {
+.health-warning
+.health-state {
 
     color:
         var(--yellow);
-
 }
 
 
@@ -622,41 +931,40 @@ select:focus {
             255,
             94,
             94,
-            0.40
+            0.25
         );
-
 }
 
 
-.health-critical .health-icon {
+.health-critical
+.health-icon {
 
     background:
         var(--red);
 
     box-shadow:
-        0 0 0 5px
+        0 0 0 4px
         rgba(
             255,
             94,
             94,
-            0.10
+            0.07
         ),
-        0 0 14px
+        0 0 8px
         rgba(
             255,
             94,
             94,
-            0.35
+            0.20
         );
-
 }
 
 
-.health-critical .health-state {
+.health-critical
+.health-state {
 
     color:
         var(--red);
-
 }
 
 
@@ -667,31 +975,30 @@ select:focus {
             255,
             159,
             67,
-            0.35
+            0.22
         );
-
 }
 
 
-.health-error .health-icon {
+.health-error
+.health-icon {
 
     background:
         var(--orange);
-
 }
 
 
-.health-error .health-state {
+.health-error
+.health-state {
 
     color:
         var(--orange);
-
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * STATUS CARDS
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .status-card {
 
@@ -699,32 +1006,32 @@ select:focus {
         var(--panel);
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
     border-radius:
         12px;
 
     padding:
-        16px;
+        15px;
 
     margin-bottom:
-        12px;
+        10px;
 
     backdrop-filter:
-        blur(5px);
+        blur(2px);
 
     -webkit-backdrop-filter:
-        blur(5px);
+        blur(2px);
 
     box-shadow:
         var(--shadow);
-
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * SECTION HEADINGS
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .section-heading {
 
@@ -736,7 +1043,6 @@ select:focus {
 
     gap:
         8px;
-
 }
 
 
@@ -752,10 +1058,10 @@ select:focus {
         center;
 
     width:
-        30px;
+        29px;
 
     height:
-        30px;
+        29px;
 
     border-radius:
         8px;
@@ -765,15 +1071,20 @@ select:focus {
             255,
             255,
             255,
-            0.045
+            0.035
         );
 
     border:
-        1px solid var(--border);
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.07
+        );
 
     font-size:
         15px;
-
 }
 
 
@@ -786,23 +1097,33 @@ select:focus {
         2px;
 
     color:
-        var(--muted);
+        var(--text-muted);
 
     font-size:
         10px;
 
+    font-weight:
+        550;
+
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * COLLAPSIBLE SECTIONS
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .collapsible-section {
 
     overflow:
         hidden;
-
 }
 
 
@@ -813,15 +1134,14 @@ select:focus {
 
     list-style:
         none;
-
 }
 
 
-.collapsible-section > summary::-webkit-details-marker {
+.collapsible-section >
+summary::-webkit-details-marker {
 
     display:
         none;
-
 }
 
 
@@ -840,8 +1160,7 @@ select:focus {
         38px;
 
     padding:
-        2px 0;
-
+        1px 0;
 }
 
 
@@ -863,8 +1182,7 @@ select:focus {
         28px;
 
     color:
-        var(--muted);
-
+        var(--text-muted);
 }
 
 
@@ -881,7 +1199,6 @@ select:focus {
 
     transition:
         transform 0.15s ease;
-
 }
 
 
@@ -889,10 +1206,7 @@ select:focus {
 .toggle-icon {
 
     transform:
-        rotate(
-            90deg
-        );
-
+        rotate(90deg);
 }
 
 
@@ -900,13 +1214,12 @@ select:focus {
 
     padding-top:
         6px;
-
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * BUTTON
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 button {
 
@@ -920,37 +1233,56 @@ button {
         center;
 
     gap:
-        7px;
+        6px;
 
     background:
-        var(--panel-light);
+        rgba(
+            30,
+            33,
+            42,
+            0.22
+        );
 
     color:
         var(--text);
 
     border:
-        1px solid var(--border);
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.075
+        );
 
     border-radius:
         8px;
 
     padding:
-        8px 12px;
+        7px 11px;
 
     font-size:
-        12px;
+        11px;
 
     font-weight:
-        600;
+        700;
 
     cursor:
         pointer;
+
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 
     transition:
         background 0.15s ease,
         border-color 0.15s ease,
         transform 0.15s ease;
-
 }
 
 
@@ -958,18 +1290,26 @@ button {
 
     width:
         auto;
-
 }
 
 
 button:hover {
 
     background:
-        #292e38;
+        rgba(
+            45,
+            49,
+            60,
+            0.30
+        );
 
     border-color:
-        #3a414d;
-
+        rgba(
+            255,
+            255,
+            255,
+            0.14
+        );
 }
 
 
@@ -977,7 +1317,6 @@ button:active {
 
     transform:
         translateY(1px);
-
 }
 
 
@@ -988,7 +1327,6 @@ button:disabled {
 
     cursor:
         wait;
-
 }
 
 
@@ -1002,7 +1340,6 @@ button:disabled {
 
     line-height:
         1;
-
 }
 
 
@@ -1010,14 +1347,16 @@ button:disabled
 .refresh-icon {
 
     animation:
-        spin 0.8s linear infinite;
-
+        spin
+        0.8s
+        linear
+        infinite;
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * SENSOR GRID
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .sensor-grid {
 
@@ -1028,16 +1367,19 @@ button:disabled
         repeat(
             auto-fit,
             minmax(
-                180px,
+                175px,
                 1fr
             )
         );
 
     gap:
-        10px;
-
+        8px;
 }
 
+
+/* =========================================================
+ * SENSOR CARDS
+ * ========================================================= */
 
 .sensor {
 
@@ -1051,22 +1393,47 @@ button:disabled
         0;
 
     background:
-        var(--panel-light);
+        rgba(
+            20,
+            23,
+            32,
+            0.24
+        );
 
     border:
-        1px solid var(--border);
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.065
+        );
 
     border-radius:
         9px;
 
     padding:
-        12px;
+        11px 12px;
+
+    backdrop-filter:
+        blur(2px);
+
+    -webkit-backdrop-filter:
+        blur(2px);
+
+    box-shadow:
+        inset 0 1px 0
+        rgba(
+            255,
+            255,
+            255,
+            0.018
+        );
 
     transition:
         transform 0.15s ease,
         border-color 0.15s ease,
         background 0.15s ease;
-
 }
 
 
@@ -1076,8 +1443,20 @@ button:disabled
         translateY(-2px);
 
     border-color:
-        #3b424f;
+        rgba(
+            255,
+            255,
+            255,
+            0.13
+        );
 
+    background:
+        rgba(
+            28,
+            31,
+            41,
+            0.32
+        );
 }
 
 
@@ -1102,8 +1481,12 @@ button:disabled
         2px;
 
     background:
-        var(--border);
-
+        rgba(
+            255,
+            255,
+            255,
+            0.07
+        );
 }
 
 
@@ -1111,7 +1494,6 @@ button:disabled
 
     background:
         var(--green);
-
 }
 
 
@@ -1119,7 +1501,6 @@ button:disabled
 
     background:
         var(--yellow);
-
 }
 
 
@@ -1127,7 +1508,6 @@ button:disabled
 
     background:
         var(--orange);
-
 }
 
 
@@ -1135,31 +1515,44 @@ button:disabled
 
     background:
         var(--red);
-
 }
 
 
 .sensor-name {
 
     color:
-        var(--muted);
+        var(--text-soft);
 
     font-size:
         11px;
 
+    font-weight:
+        700;
+
     margin-bottom:
         6px;
 
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
 .sensor-temperature {
 
+    color:
+        var(--text);
+
     font-size:
-        28px;
+        27px;
 
     font-weight:
-        bold;
+        800;
 
     line-height:
         1;
@@ -1167,6 +1560,14 @@ button:disabled
     letter-spacing:
         -0.5px;
 
+    text-shadow:
+        0 1px 4px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
@@ -1179,26 +1580,33 @@ button:disabled
         6px;
 
     font-size:
-        10px;
+        9px;
 
     font-weight:
-        bold;
+        800;
 
     letter-spacing:
-        0.7px;
+        0.8px;
 
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * SENSOR STATES
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .normal {
 
     color:
         var(--green);
-
 }
 
 
@@ -1206,7 +1614,6 @@ button:disabled
 
     color:
         var(--yellow);
-
 }
 
 
@@ -1214,7 +1621,6 @@ button:disabled
 
     color:
         var(--orange);
-
 }
 
 
@@ -1222,13 +1628,12 @@ button:disabled
 
     color:
         var(--red);
-
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * UPDATE META
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .update-meta {
 
@@ -1242,34 +1647,44 @@ button:disabled
         15px;
 
     margin-top:
-        10px;
+        8px;
 
     color:
-        var(--muted);
+        var(--text-muted);
 
     font-size:
         10px;
 
+    font-weight:
+        550;
+
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
-.update-meta span:first-child {
+.update-meta
+span:first-child {
 
     color:
         var(--green);
-
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * SYSTEM STATUS
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .section-title-row {
 
     margin-bottom:
-        12px;
-
+        10px;
 }
 
 
@@ -1282,14 +1697,13 @@ button:disabled
         repeat(
             auto-fit,
             minmax(
-                180px,
+                175px,
                 1fr
             )
         );
 
     gap:
-        10px;
-
+        8px;
 }
 
 
@@ -1302,21 +1716,38 @@ button:disabled
         8px;
 
     background:
-        var(--panel-light);
+        rgba(
+            22,
+            25,
+            34,
+            0.24
+        );
 
     border:
-        1px solid var(--border);
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.065
+        );
 
     border-radius:
-        5px;
+        7px;
 
     padding:
         10px;
 
+    backdrop-filter:
+        blur(2px);
+
+    -webkit-backdrop-filter:
+        blur(2px);
+
     transition:
         transform 0.15s ease,
-        border-color 0.15s ease;
-
+        border-color 0.15s ease,
+        background 0.15s ease;
 }
 
 
@@ -1326,8 +1757,20 @@ button:disabled
         translateY(-2px);
 
     border-color:
-        #3b424f;
+        rgba(
+            255,
+            255,
+            255,
+            0.13
+        );
 
+    background:
+        rgba(
+            30,
+            33,
+            43,
+            0.32
+        );
 }
 
 
@@ -1343,8 +1786,7 @@ button:disabled
         6px;
 
     margin-bottom:
-        8px;
-
+        7px;
 }
 
 
@@ -1353,17 +1795,41 @@ button:disabled
     font-size:
         12px;
 
+    filter:
+        drop-shadow(
+            0 1px 3px
+            rgba(
+                0,
+                0,
+                0,
+                0.30
+            )
+        );
 }
 
 
 .label {
 
     color:
-        var(--muted);
+        var(--text-soft);
 
     font-size:
         10px;
 
+    font-weight:
+        750;
+
+    letter-spacing:
+        0.1px;
+
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
@@ -1372,15 +1838,29 @@ button:disabled
     display:
         block;
 
+    color:
+        var(--text);
+
     font-size:
-        17px;
+        18px;
 
     font-weight:
-        bold;
+        800;
 
     line-height:
         1.15;
 
+    letter-spacing:
+        -0.1px;
+
+    text-shadow:
+        0 1px 4px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
@@ -1393,19 +1873,33 @@ button:disabled
         4px;
 
     color:
-        var(--muted);
+        var(--text-muted);
 
     font-size:
-        9px;
+        10px;
 
+    font-weight:
+        600;
+
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
+
+/* =========================================================
+ * STATUS COLORS
+ * ========================================================= */
 
 .online {
 
     color:
         var(--green);
-
 }
 
 
@@ -1413,7 +1907,6 @@ button:disabled
 
     color:
         var(--yellow);
-
 }
 
 
@@ -1421,13 +1914,12 @@ button:disabled
 
     color:
         var(--red);
-
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * RESOURCE BARS
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .metric-bar {
 
@@ -1451,9 +1943,8 @@ button:disabled
             255,
             255,
             255,
-            0.07
+            0.06
         );
-
 }
 
 
@@ -1474,7 +1965,6 @@ button:disabled
     transition:
         width 0.35s ease,
         background 0.2s ease;
-
 }
 
 
@@ -1482,7 +1972,6 @@ button:disabled
 
     background:
         var(--yellow);
-
 }
 
 
@@ -1490,7 +1979,6 @@ button:disabled
 
     background:
         var(--orange);
-
 }
 
 
@@ -1498,13 +1986,12 @@ button:disabled
 
     background:
         var(--red);
-
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * LOADING
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .loading {
 
@@ -1530,25 +2017,32 @@ button:disabled
         110px;
 
     color:
-        var(--muted);
+        var(--text-muted);
 
     text-align:
         center;
 
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
 .loading-fox {
 
     font-size:
-        30px;
+        28px;
 
     animation:
         loading-bob
         1.4s
         ease-in-out
         infinite;
-
 }
 
 
@@ -1556,13 +2050,12 @@ button:disabled
 
     color:
         var(--orange);
-
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * HARDWARE LISTS
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .hardware-list {
 
@@ -1574,7 +2067,6 @@ button:disabled
 
     gap:
         2px;
-
 }
 
 
@@ -1582,20 +2074,31 @@ button:disabled
 .hardware-list-empty {
 
     color:
-        var(--muted);
+        var(--text-muted);
 
     font-size:
         10px;
 
-    line-height:
-        1.15;
+    font-weight:
+        550;
 
+    line-height:
+        1.2;
+
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * COMPACT SYSTEM INFO
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 .system-item-large {
 
@@ -1603,14 +2106,13 @@ button:disabled
         0;
 
     padding:
-        12px;
-
+        11px;
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * FOOTER
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 footer {
 
@@ -1624,41 +2126,45 @@ footer {
         15px;
 
     color:
-        var(--muted);
+        var(--text-muted);
 
     font-size:
-        10px;
+        9px;
+
+    font-weight:
+        550;
 
     padding:
         4px 2px 10px;
 
+    text-shadow:
+        0 1px 3px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * ANIMATIONS
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 @keyframes spin {
 
     from {
 
         transform:
-            rotate(
-                0deg
-            );
-
+            rotate(0deg);
     }
 
     to {
 
         transform:
-            rotate(
-                360deg
-            );
-
+            rotate(360deg);
     }
-
 }
 
 
@@ -1669,16 +2175,13 @@ footer {
 
         opacity:
             0.45;
-
     }
 
     50% {
 
         opacity:
             1;
-
     }
-
 }
 
 
@@ -1688,27 +2191,20 @@ footer {
     100% {
 
         transform:
-            translateY(
-                0
-            );
-
+            translateY(0);
     }
 
     50% {
 
         transform:
-            translateY(
-                -5px
-            );
-
+            translateY(-5px);
     }
-
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
  * SMALL SCREENS
- * --------------------------------------------------------- */
+ * ========================================================= */
 
 @media (
     max-width: 700px
@@ -1716,28 +2212,28 @@ footer {
 
     .container {
 
-        padding:
-            14px;
+        width:
+            calc(100% - 14px);
 
+        padding:
+            10px 0 12px;
     }
 
 
     header {
 
         gap:
-            12px;
+            10px;
 
         margin-bottom:
             10px;
-
     }
 
 
     .fox {
 
         font-size:
-            42px;
-
+            39px;
     }
 
 
@@ -1745,15 +2241,20 @@ footer {
 
         font-size:
             24px;
+    }
 
+
+    h2 {
+
+        font-size:
+            17px;
     }
 
 
     .status-card {
 
         padding:
-            14px;
-
+            13px;
     }
 
 
@@ -1764,7 +2265,6 @@ footer {
 
         flex-direction:
             column;
-
     }
 
 
@@ -1775,7 +2275,6 @@ footer {
 
         justify-content:
             space-between;
-
     }
 
 
@@ -1786,7 +2285,6 @@ footer {
 
         min-width:
             0;
-
     }
 
 
@@ -1794,7 +2292,6 @@ footer {
 
         width:
             100%;
-
     }
 
 
@@ -1802,7 +2299,6 @@ footer {
 
         display:
             none;
-
     }
 
 
@@ -1810,7 +2306,6 @@ footer {
 
         white-space:
             normal;
-
     }
 
 
@@ -1818,7 +2313,6 @@ footer {
 
         grid-template-columns:
             1fr;
-
     }
 
 
@@ -1826,7 +2320,20 @@ footer {
 
         grid-template-columns:
             1fr;
+    }
 
+
+    .sensor-temperature {
+
+        font-size:
+            26px;
+    }
+
+
+    .value {
+
+        font-size:
+            17px;
     }
 
 
@@ -1837,7 +2344,144 @@ footer {
 
         gap:
             5px;
+    }
+}
 
+
+/* =========================================================
+ * VERY SMALL IFRAMES
+ * ========================================================= */
+
+@media (
+    max-width: 520px
+) {
+
+    .container {
+
+        width:
+            calc(100% - 8px);
     }
 
+
+    header {
+
+        gap:
+            8px;
+    }
+
+
+    .fox {
+
+        font-size:
+            36px;
+    }
+
+
+    h1 {
+
+        font-size:
+            22px;
+    }
+
+
+    h2 {
+
+        font-size:
+            16px;
+    }
+
+
+    p {
+
+        font-size:
+            10px;
+    }
+
+
+    .status-card {
+
+        padding:
+            11px;
+
+        margin-bottom:
+            8px;
+    }
+
+
+    .section-icon {
+
+        width:
+            27px;
+
+        height:
+            27px;
+
+        font-size:
+            14px;
+    }
+
+
+    .sensor,
+    .system-item {
+
+        padding:
+            10px;
+    }
+
+
+    .sensor-temperature {
+
+        font-size:
+            25px;
+    }
+
+
+    .label,
+    .control-group label,
+    .control-status {
+
+        font-size:
+            10px;
+    }
+
+
+    .value {
+
+        font-size:
+            16px;
+    }
+
+
+    .metric-hint {
+
+        font-size:
+            9px;
+    }
+}
+
+
+/* =========================================================
+ * REDUCED MOTION
+ * ========================================================= */
+
+@media (
+    prefers-reduced-motion: reduce
+) {
+
+    *,
+    *::before,
+    *::after {
+
+        animation-duration:
+            0.01ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        transition-duration:
+            0.01ms !important;
+
+        scroll-behavior:
+            auto !important;
+    }
 }
