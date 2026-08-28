@@ -2619,6 +2619,32 @@ footer {
         1.25;
 }
 
+.container-meter-label {
+    margin-top: 5px;
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.container-meter {
+    height: 4px;
+    margin-top: 2px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.container-meter-fill {
+    height: 100%;
+    border-radius: inherit;
+    transition: width 0.35s ease;
+}
+
+.container-meter-fill.cpu { background: var(--green); }
+.container-meter-fill.memory { background: var(--yellow); }
+.container-meter-fill.network { background: #8fd3ff; }
+.container-meter-fill.block { background: #d58cff; }
+
 
 #network-usage-status {
 

@@ -2236,28 +2236,41 @@
         containerHealthSection.hidden = items.length === 0;
         if (items.length === 0) return;
 
+        const unitFactor = unit => ({ B: 1, KIB: 1024, MIB: 1024 ** 2, GIB: 1024 ** 3, TIB: 1024 ** 4 }[String(unit || "B").toUpperCase()] || 1);
+        const parseBytes = value => {
+            const match = String(value ?? "").trim().match(/^([\d.]+)\s*(B|KiB|MiB|GiB|TiB)?$/i);
+            return match ? Number(match[1]) * unitFactor(match[2]) : NaN;
+        };
+        const parsePairTotal = value => String(value ?? "").split("/").reduce((sum, part) => sum + (Number.isFinite(parseBytes(part)) ? parseBytes(part) : 0), 0);
+        const maxNetwork = Math.max(1, ...items.map(item => parsePairTotal(item.networkIO ?? item.network_io)));
+        const maxBlock = Math.max(1, ...items.map(item => parsePairTotal(item.blockIO ?? item.block_io)));
+
         containerHealthGrid.innerHTML = items.map(item => {
             const name = item.name || item.container_name || item.id || "Unknown container";
-            const cpu = Number(item.cpu_percent ?? item.cpu_usage_percent ?? item.cpu);
-            const memory = Number(item.memory_percent ?? item.memory_usage_percent);
-            const memoryBytes = Number(item.memory_usage_bytes ?? item.memory_bytes);
-            const networkRx = Number(item.network_rx_bytes_per_second ?? item.rx_bytes_per_second);
-            const networkTx = Number(item.network_tx_bytes_per_second ?? item.tx_bytes_per_second);
-            const blockRead = Number(item.block_read_bytes_per_second ?? item.read_bytes_per_second);
-            const blockWrite = Number(item.block_write_bytes_per_second ?? item.write_bytes_per_second);
+            const cpu = item.cpu ?? item.cpu_percent ?? item.cpu_usage_percent;
+            const memory = item.memory ?? item.memory_percent ?? item.memory_usage_percent;
+            const memoryLimit = item.memoryLimit ?? item.memory_limit ?? item.memory_limit_bytes;
+            const networkIO = item.networkIO ?? item.network_io;
+            const blockIO = item.blockIO ?? item.block_io;
             const status = item.status || item.state || "UNKNOWN";
             const details = [];
-            if (Number.isFinite(cpu)) details.push(`CPU ${cpu.toFixed(1)}%`);
-            if (Number.isFinite(memory)) details.push(`Memory ${memory.toFixed(1)}%`);
-            else if (Number.isFinite(memoryBytes)) details.push(`Memory ${formatBytes(memoryBytes)}`);
-            if (Number.isFinite(networkRx)) details.push(`↓ ${formatBytes(networkRx)}/s`);
-            if (Number.isFinite(networkTx)) details.push(`↑ ${formatBytes(networkTx)}/s`);
-            if (Number.isFinite(blockRead)) details.push(`Read ${formatBytes(blockRead)}/s`);
-            if (Number.isFinite(blockWrite)) details.push(`Write ${formatBytes(blockWrite)}/s`);
             if (item.health) details.push(String(item.health));
+            const cpuPercent = Number.parseFloat(String(cpu ?? ""));
+            const memoryMatch = String(memory ?? "").match(/^([\d.]+)\s*(B|KiB|MiB|GiB|TiB)?$/i);
+            const limitMatch = String(memoryLimit ?? "").match(/^([\d.]+)\s*(B|KiB|MiB|GiB|TiB)?$/i);
+            const memoryBytes = memoryMatch ? Number(memoryMatch[1]) * unitFactor(memoryMatch[2]) : NaN;
+            const limitBytes = limitMatch ? Number(limitMatch[1]) * unitFactor(limitMatch[2]) : NaN;
+            const memoryPercent = Number.isFinite(memoryBytes) && Number.isFinite(limitBytes) && limitBytes > 0 ? (memoryBytes / limitBytes) * 100 : NaN;
+            const statusText = String(status).toUpperCase();
+            const networkTotal = parsePairTotal(networkIO);
+            const blockTotal = parsePairTotal(blockIO);
             return `<div class="hardware-list-item">
                 <div class="hardware-list-name">${escapeHtml(name)}</div>
-                <div class="hardware-list-detail">${escapeHtml(String(status).toUpperCase())} • ${escapeHtml(details.join(" • ") || "Container health data exposed by bridge")}</div>
+                <div class="hardware-list-detail">${escapeHtml(statusText)}${details.length ? ` • ${escapeHtml(details.join(" • "))}` : ""}</div>
+                ${Number.isFinite(cpuPercent) ? `<div class="container-meter-label">CPU</div><div class="container-meter" title="CPU ${escapeHtml(String(cpu))}" aria-label="CPU ${escapeHtml(String(cpu))}"><div class="container-meter-fill cpu" style="width:${Math.max(0, Math.min(100, cpuPercent))}%"></div></div>` : ""}
+                ${Number.isFinite(memoryPercent) ? `<div class="container-meter-label">Memory</div><div class="container-meter" title="Memory ${escapeHtml(String(memory))} / ${escapeHtml(String(memoryLimit))}" aria-label="Memory ${escapeHtml(String(memory))} of ${escapeHtml(String(memoryLimit))}"><div class="container-meter-fill memory" style="width:${Math.max(0, Math.min(100, memoryPercent))}%"></div></div>` : ""}
+                ${Number.isFinite(networkTotal) && networkIO ? `<div class="container-meter-label">Network I/O</div><div class="container-meter" title="Network I/O ${escapeHtml(String(networkIO))}" aria-label="Network I/O ${escapeHtml(String(networkIO))}"><div class="container-meter-fill network" style="width:${Math.min(100, (networkTotal / maxNetwork) * 100)}%"></div></div>` : ""}
+                ${Number.isFinite(blockTotal) && blockIO ? `<div class="container-meter-label">Block I/O</div><div class="container-meter" title="Block I/O ${escapeHtml(String(blockIO))}" aria-label="Block I/O ${escapeHtml(String(blockIO))}"><div class="container-meter-fill block" style="width:${Math.min(100, (blockTotal / maxBlock) * 100)}%"></div></div>` : ""}
             </div>`;
         }).join("");
     }
@@ -2858,15 +2871,28 @@
 
         try {
             const result = await window.DuneAddon.request("ops.health.containers");
-            return Array.isArray(result)
-                ? result
-                : (Array.isArray(result?.containers)
-                    ? result.containers
-                    : (Array.isArray(result?.data?.containers)
-                        ? result.data.containers
-                        : (Array.isArray(result?.result?.containers)
-                            ? result.result.containers
-                            : [])));
+            const candidates = [
+                result,
+                result?.containers,
+                result?.items,
+                result?.data,
+                result?.data?.containers,
+                result?.data?.items,
+                result?.result,
+                result?.result?.containers,
+                result?.result?.items
+            ];
+            const arrayCandidate = candidates.find(Array.isArray);
+            if (arrayCandidate) return arrayCandidate;
+
+            const objectCandidate = candidates.find(value =>
+                value &&
+                typeof value === "object" &&
+                !Array.isArray(value) &&
+                Object.values(value).length > 0 &&
+                Object.values(value).every(item => item && typeof item === "object")
+            );
+            return objectCandidate ? Object.values(objectCandidate) : [];
         } catch (error) {
             console.warn("Container health unavailable:", error);
             return [];
