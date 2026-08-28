@@ -6,36 +6,43 @@
      * FLUFFY FOX STATUS
      * =========================================================
      *
-     * Hardware Status Bridge V2
+     * Hardware Status Bridge V3
      *
-     * V2 provides:
+     * This addon uses ONLY:
+     *
+     *     server.hardware.status
+     *
+     * No ops.health access is used here.
+     *
+     * V3 host telemetry supported:
+     *
+     *   - sampled_at
      *   - temperatures
-     *   - CPU identification
-     *   - storage identification
+     *   - fans
+     *   - CPU identification / utilization / topology
+     *   - storage identification / capacity
+     *   - filesystems
+     *   - network counters / state / speed
      *   - memory
      *   - swap
      *   - load
      *   - uptime
      *
-     * Network hardware identification is NOT part of V2.
+     * Telemetry is kept in memory only.
+     * No hardware telemetry is written to localStorage.
      *
-     * Network-related temperature sensors are still supported
-     * through local driver-name mapping. This is display-only
-     * inference from the temperature sensor name.
-     *
-     * Hardware identifiers are never invented.
      * =========================================================
      */
+
 
     /*
      * =========================================================
-     * DOM HELPERS
+     * DOM HELPER
      * =========================================================
      */
 
-    const $ = function (selector) {
-        return document.querySelector(selector);
-    };
+    const $ = selector =>
+        document.querySelector(selector);
 
 
     /*
@@ -46,6 +53,9 @@
 
     const sensorGrid =
         $("#sensor-grid");
+
+    const temperatureSection =
+        $("#temperature-section");
 
     const lastUpdate =
         $("#last-update");
@@ -116,6 +126,64 @@
     const storageInfo =
         $("#storage-info");
 
+    const fanGrid =
+        $("#fan-grid");
+
+    const fanSection =
+        $("#fan-section");
+
+    const cpuUsageStatus =
+        $("#cpu-usage-status");
+
+    const cpuUsageBar =
+        $("#cpu-usage-bar");
+
+    const cpuUsageHistory =
+        $("#cpu-usage-history");
+
+    const memoryHistory =
+        $("#memory-history");
+
+    const swapHistory =
+        $("#swap-history");
+
+    const loadHistory =
+        $("#load-history");
+
+    const filesystemInfo =
+        $("#filesystem-info");
+
+    const networkInfo =
+        $("#network-info");
+
+    const filesystemInfoCard =
+        $("#filesystem-info-card");
+
+    const networkInfoCard =
+        $("#network-info-card");
+
+    const networkUsageCard =
+        $("#network-usage-card");
+
+    const networkUsageStatus =
+        $("#network-usage-status");
+
+    const networkUsageHistory =
+        $("#network-usage-history");
+
+    const containerHealthSection =
+        $("#container-health-section");
+
+    const containerHealthGrid =
+        $("#container-health-grid");
+
+    const MAX_HISTORY_SAMPLES = 60;
+    const cpuUsageSamples = [];
+    const memoryUsageSamples = [];
+    const swapUsageSamples = [];
+    const loadOneSamples = [];
+    const networkUsageSamples = [];
+
 
     /*
      * =========================================================
@@ -129,37 +197,22 @@
     const HAS_DUNE_BRIDGE =
         !LOCAL_DEVELOPMENT &&
         window.DuneAddon &&
-        typeof window.DuneAddon.request ===
-            "function";
+        typeof window.DuneAddon.request === "function";
 
 
     /*
      * =========================================================
-     * EXACT SENSOR DISPLAY MAP
-     * =========================================================
-     *
-     * These are exact known names.
-     *
-     * Driver-family fallbacks are handled below.
+     * SENSOR DISPLAY MAP
      * =========================================================
      */
 
     const SENSOR_DISPLAY_MAP = {
-
-        /*
-         * ACPI
-         */
 
         "acpitz Sensor 1":
             "ACPI Thermal Zone",
 
         "acpitz Sensor 2":
             "ACPI Thermal Zone 2",
-
-
-        /*
-         * CPU
-         */
 
         "coretemp Package id 0":
             "CPU Package",
@@ -199,22 +252,13 @@
      * SENSOR DRIVER DISPLAY MAP
      * =========================================================
      *
-     * DISPLAY-ONLY.
+     * DISPLAY-ONLY labels.
      *
-     * We do NOT claim that a driver name is a persistent
-     * hardware identifier.
-     *
-     * Unknown drivers simply fall back to their original name.
+     * These do NOT create hardware identities.
      * =========================================================
      */
 
     const SENSOR_DRIVER_MAP = [
-
-        /*
-         * -----------------------------------------------------
-         * REALTEK NETWORK
-         * -----------------------------------------------------
-         */
 
         {
             pattern:
@@ -248,13 +292,6 @@
                 "Realtek Network Adapter"
         },
 
-
-        /*
-         * -----------------------------------------------------
-         * BROADCOM NETWORK
-         * -----------------------------------------------------
-         */
-
         {
             pattern:
                 /^tg3(?:[_\s:-]|$)/i,
@@ -278,13 +315,6 @@
             label:
                 "Broadcom Network Adapter"
         },
-
-
-        /*
-         * -----------------------------------------------------
-         * INTEL NETWORK
-         * -----------------------------------------------------
-         */
 
         {
             pattern:
@@ -334,13 +364,6 @@
                 "Intel Network Adapter"
         },
 
-
-        /*
-         * -----------------------------------------------------
-         * MELLANOX / NVIDIA NETWORK
-         * -----------------------------------------------------
-         */
-
         {
             pattern:
                 /^mlx4/i,
@@ -356,13 +379,6 @@
             label:
                 "Mellanox Network Adapter"
         },
-
-
-        /*
-         * -----------------------------------------------------
-         * MARVELL / AQUANTIA NETWORK
-         * -----------------------------------------------------
-         */
 
         {
             pattern:
@@ -380,13 +396,6 @@
                 "Marvell Network Adapter"
         },
 
-
-        /*
-         * -----------------------------------------------------
-         * QUALCOMM / ATHEROS NETWORK
-         * -----------------------------------------------------
-         */
-
         {
             pattern:
                 /^alx(?:[_\s:-]|$)/i,
@@ -394,17 +403,6 @@
             label:
                 "Qualcomm / Atheros Network Adapter"
         },
-
-
-        /*
-         * -----------------------------------------------------
-         * NVIDIA / AMD GPU TEMPERATURE
-         * -----------------------------------------------------
-         *
-         * Driver family only.
-         * GPU model is NOT inferred.
-         * -----------------------------------------------------
-         */
 
         {
             pattern:
@@ -422,13 +420,6 @@
                 "NVIDIA GPU"
         },
 
-
-        /*
-         * -----------------------------------------------------
-         * INTEL GPU TEMPERATURE
-         * -----------------------------------------------------
-         */
-
         {
             pattern:
                 /^i915(?:[_\s:-]|$)/i,
@@ -437,13 +428,6 @@
                 "Intel GPU"
         },
 
-
-        /*
-         * -----------------------------------------------------
-         * NVME
-         * -----------------------------------------------------
-         */
-
         {
             pattern:
                 /^nvme(?:[_\s:-]|$)/i,
@@ -451,13 +435,6 @@
             label:
                 "NVMe"
         },
-
-
-        /*
-         * -----------------------------------------------------
-         * AMD CPU TEMPERATURE
-         * -----------------------------------------------------
-         */
 
         {
             pattern:
@@ -499,21 +476,13 @@
                     )
                 );
 
-
         if (!rawName) {
             return "Unknown Sensor";
         }
 
-
         const name =
             String(rawName).trim();
 
-
-        /*
-         * -----------------------------------------------------
-         * BRIDGE-PROVIDED FRIENDLY NAME
-         * -----------------------------------------------------
-         */
 
         if (
             sensor &&
@@ -525,7 +494,6 @@
                 sensor.displayName ??
                 sensor.friendly_name ??
                 sensor.friendlyName;
-
 
             if (
                 typeof friendlyName === "string" &&
@@ -539,12 +507,6 @@
         }
 
 
-        /*
-         * -----------------------------------------------------
-         * EXACT LOCAL MAP
-         * -----------------------------------------------------
-         */
-
         if (
             Object.prototype.hasOwnProperty.call(
                 SENSOR_DISPLAY_MAP,
@@ -557,43 +519,19 @@
         }
 
 
-        /*
-         * -----------------------------------------------------
-         * CORETEMP PACKAGE FALLBACK
-         * -----------------------------------------------------
-         *
-         * IMPORTANT:
-         *
-         * This MUST happen before the generic driver map.
-         * Otherwise "coretemp Core N" would be caught by a
-         * generic coretemp family rule.
-         *
-         * This handles any package number dynamically.
-         * -----------------------------------------------------
-         */
-
         const packageMatch =
             name.match(
                 /^coretemp\s+Package\s+id\s+(\d+)$/i
             );
 
-
         if (packageMatch) {
 
             const packageId =
-                Number(
-                    packageMatch[1]
-                );
+                Number(packageMatch[1]);
 
-
-            if (
-                packageId === 0
-            ) {
-
+            if (packageId === 0) {
                 return "CPU Package";
-
             }
-
 
             return (
                 "CPU Package " +
@@ -603,28 +541,10 @@
         }
 
 
-        /*
-         * -----------------------------------------------------
-         * CORETEMP CORE FALLBACK
-         * -----------------------------------------------------
-         *
-         * Handles any CPU core number.
-         *
-         * Examples:
-         *
-         * coretemp Core 0
-         * coretemp Core 7
-         * coretemp Core 15
-         * coretemp Core 31
-         * coretemp Core 63
-         * -----------------------------------------------------
-         */
-
         const coreMatch =
             name.match(
                 /^coretemp\s+Core\s+(\d+)$/i
             );
-
 
         if (coreMatch) {
 
@@ -635,12 +555,6 @@
 
         }
 
-
-        /*
-         * -----------------------------------------------------
-         * ACPI FALLBACK
-         * -----------------------------------------------------
-         */
 
         if (
             name
@@ -653,25 +567,14 @@
                     /Sensor\s+(\d+)/i
                 );
 
-
-            if (
-                acpiMatch
-            ) {
+            if (acpiMatch) {
 
                 const sensorNumber =
-                    Number(
-                        acpiMatch[1]
-                    );
+                    Number(acpiMatch[1]);
 
-
-                if (
-                    sensorNumber === 1
-                ) {
-
+                if (sensorNumber === 1) {
                     return "ACPI Thermal Zone";
-
                 }
-
 
                 return (
                     "ACPI Thermal Zone " +
@@ -680,22 +583,10 @@
 
             }
 
-
             return "ACPI Thermal Zone";
 
         }
 
-
-        /*
-         * -----------------------------------------------------
-         * DRIVER / FAMILY MAP
-         * -----------------------------------------------------
-         *
-         * This comes AFTER specific CPU/ACPI matching.
-         *
-         * That is the actual fix in this version.
-         * -----------------------------------------------------
-         */
 
         for (
             const entry of SENSOR_DRIVER_MAP
@@ -712,266 +603,7 @@
         }
 
 
-        /*
-         * -----------------------------------------------------
-         * UNKNOWN
-         * -----------------------------------------------------
-         *
-         * Never destroy information we don't understand.
-         * -----------------------------------------------------
-         */
-
         return name;
-
-    }
-
-
-    /*
-     * =========================================================
-     * LOCAL DEVELOPMENT MOCK
-     * =========================================================
-     *
-     * Used only when index.html is opened directly.
-     *
-     * No Network hardware object is included.
-     *
-     * Network driver examples exist ONLY as temperature
-     * sensors so the mapping can be tested.
-     * =========================================================
-     */
-
-    function getMockData() {
-
-        return {
-
-            version:
-                2,
-
-
-            /*
-             * CPU
-             */
-
-            cpu: {
-
-                id:
-                    "cpu:0",
-
-                manufacturer:
-                    "AMD",
-
-                model:
-                    "Ryzen 9 5950X"
-
-            },
-
-
-            /*
-             * Memory
-             */
-
-            memory: {
-
-                total_kb:
-                    16777216,
-
-                available_kb:
-                    8388608,
-
-                used_kb:
-                    8388608,
-
-                percent:
-                    50.0
-
-            },
-
-
-            /*
-             * Storage
-             */
-
-            storage: [
-
-                {
-
-                    id:
-                        "block:sda",
-
-                    name:
-                        "sda",
-
-                    manufacturer:
-                        "Crucial",
-
-                    model:
-                        "CT250MX500SSD1",
-
-                    bus:
-                        "sata"
-
-                },
-
-                {
-
-                    id:
-                        "block:nvme0n1",
-
-                    name:
-                        "nvme0n1",
-
-                    manufacturer:
-                        "Samsung",
-
-                    model:
-                        "Samsung SSD 990 PRO 2TB",
-
-                    bus:
-                        "nvme"
-
-                }
-
-            ],
-
-
-            /*
-             * Temperatures.
-             */
-
-            temperatures: [
-
-                {
-
-                    name:
-                        "coretemp Package id 0",
-
-                    temperature:
-                        47.0,
-
-                    device_id:
-                        "cpu:0"
-
-                },
-
-                {
-
-                    name:
-                        "coretemp Core 0",
-
-                    temperature:
-                        45.0,
-
-                    device_id:
-                        "cpu:0"
-
-                },
-
-                {
-
-                    name:
-                        "coretemp Core 1",
-
-                    temperature:
-                        46.0,
-
-                    device_id:
-                        "cpu:0"
-
-                },
-
-                {
-
-                    name:
-                        "r8169_0_d00:00 Sensor 1",
-
-                    temperature:
-                        44.0
-
-                },
-
-                {
-
-                    name:
-                        "tg3 Sensor 1",
-
-                    temperature:
-                        47.0
-
-                },
-
-                {
-
-                    name:
-                        "nvme Composite",
-
-                    temperature:
-                        39.9,
-
-                    device_id:
-                        "block:nvme0n1"
-
-                },
-
-                {
-
-                    name:
-                        "acpitz Sensor 1",
-
-                    temperature:
-                        38.0
-
-                }
-
-            ],
-
-
-            /*
-             * Swap
-             */
-
-            swap: {
-
-                total_kb:
-                    4194304,
-
-                free_kb:
-                    4194304,
-
-                used_kb:
-                    0,
-
-                percent:
-                    0.0
-
-            },
-
-
-            /*
-             * Load
-             */
-
-            load: {
-
-                one:
-                    0.25,
-
-                five:
-                    0.20,
-
-                fifteen:
-                    0.18
-
-            },
-
-
-            /*
-             * Uptime
-             */
-
-            uptime_seconds:
-                86400
-
-        };
 
     }
 
@@ -984,41 +616,19 @@
 
     function escapeHtml(value) {
 
-        return String(
-            value ?? ""
-        )
-
-            .replaceAll(
-                "&",
-                "&amp;"
-            )
-
-            .replaceAll(
-                "<",
-                "&lt;"
-            )
-
-            .replaceAll(
-                ">",
-                "&gt;"
-            )
-
-            .replaceAll(
-                '"',
-                "&quot;"
-            )
-
-            .replaceAll(
-                "'",
-                "&#039;"
-            );
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
 
     }
 
 
     /*
      * =========================================================
-     * FORMAT BYTES
+     * BYTE FORMATTING
      * =========================================================
      */
 
@@ -1026,7 +636,6 @@
 
         const value =
             Number(bytes);
-
 
         if (
             !Number.isFinite(value) ||
@@ -1037,73 +646,44 @@
 
         }
 
-
-        if (
-            value === 0
-        ) {
-
+        if (value === 0) {
             return "0 B";
-
         }
 
-
         const units = [
-
             "B",
             "KB",
             "MB",
             "GB",
             "TB",
             "PB"
-
         ];
 
-
-        let number =
-            value;
-
-        let unit =
-            0;
-
+        let number = value;
+        let unit = 0;
 
         while (
             number >= 1024 &&
-            unit <
-                units.length - 1
+            unit < units.length - 1
         ) {
 
-            number /=
-                1024;
-
+            number /= 1024;
             unit++;
 
         }
 
-
         return (
-
             number.toFixed(
-
                 number >= 100
                     ? 0
                     : 1
-
             ) +
-
             " " +
-
             units[unit]
-
         );
 
     }
 
-
-    /*
-     * =========================================================
-     * FORMAT KB
-     * =========================================================
-     */
 
     function formatBytesFromKB(kb) {
 
@@ -1116,7 +696,7 @@
 
     /*
      * =========================================================
-     * FORMAT UPTIME
+     * UPTIME
      * =========================================================
      */
 
@@ -1128,44 +708,26 @@
                 Number(seconds) || 0
             );
 
-
         const days =
-            Math.floor(
-                value / 86400
-            );
+            Math.floor(value / 86400);
 
-
-        value %=
-            86400;
-
+        value %= 86400;
 
         const hours =
-            Math.floor(
-                value / 3600
-            );
+            Math.floor(value / 3600);
 
-
-        value %=
-            3600;
-
+        value %= 3600;
 
         const minutes =
-            Math.floor(
-                value / 60
-            );
-
+            Math.floor(value / 60);
 
         return (
-
             days +
             "d " +
-
             hours +
             "h " +
-
             minutes +
             "m"
-
         );
 
     }
@@ -1181,65 +743,36 @@
         temperature
     ) {
 
-        if (
-            temperature >= 85
-        ) {
+        if (temperature >= 85) {
 
             return {
-
-                name:
-                    "CRITICAL",
-
-                className:
-                    "critical"
-
+                name: "CRITICAL",
+                className: "critical"
             };
 
         }
 
-
-        if (
-            temperature >= 75
-        ) {
+        if (temperature >= 75) {
 
             return {
-
-                name:
-                    "HOT",
-
-                className:
-                    "hot"
-
+                name: "HOT",
+                className: "hot"
             };
 
         }
 
-
-        if (
-            temperature >= 60
-        ) {
+        if (temperature >= 60) {
 
             return {
-
-                name:
-                    "WARM",
-
-                className:
-                    "warm"
-
+                name: "WARM",
+                className: "warm"
             };
 
         }
-
 
         return {
-
-            name:
-                "NORMAL",
-
-            className:
-                "normal"
-
+            name: "NORMAL",
+            className: "normal"
         };
 
     }
@@ -1247,82 +780,7 @@
 
     /*
      * =========================================================
-     * NORMALIZE SENSOR
-     * =========================================================
-     */
-
-    function normalizeSensor(
-        sensor
-    ) {
-
-        if (
-            typeof sensor === "string"
-        ) {
-
-            return {
-
-                name:
-                    sensor,
-
-                temperature:
-                    NaN
-
-            };
-
-        }
-
-
-        if (
-            !sensor ||
-            typeof sensor !== "object"
-        ) {
-
-            return {
-
-                name:
-                    "Unknown Sensor",
-
-                temperature:
-                    NaN
-
-            };
-
-        }
-
-
-        const temperature =
-            Number(
-
-                sensor.temperature ??
-                sensor.temp ??
-                sensor.value ??
-                sensor.celsius
-
-            );
-
-
-        return {
-
-            ...sensor,
-
-            name:
-
-                sensor.name ??
-                sensor.label ??
-                sensor.sensor ??
-                sensor.id ??
-                "Unknown Sensor",
-
-            temperature
-
-        };
-
-    }
-
-
-    /*
-     * =========================================================
-     * HARDWARE HELPERS
+     * GENERAL HARDWARE HELPERS
      * =========================================================
      */
 
@@ -1340,14 +798,12 @@
 
         }
 
-
         for (
             const key of keys
         ) {
 
             const value =
                 object[key];
-
 
             if (
                 value !== undefined &&
@@ -1361,44 +817,31 @@
 
         }
 
-
         return null;
 
     }
 
 
-    function getManufacturer(
-        object
-    ) {
+    function getManufacturer(object) {
 
         return firstValue(
-
             object,
-
             [
-
                 "manufacturer",
                 "vendor",
                 "brand",
                 "maker"
-
             ]
-
         );
 
     }
 
 
-    function getModel(
-        object
-    ) {
+    function getModel(object) {
 
         return firstValue(
-
             object,
-
             [
-
                 "model",
                 "model_name",
                 "modelName",
@@ -1406,31 +849,22 @@
                 "product_name",
                 "productName",
                 "name"
-
             ]
-
         );
 
     }
 
 
-    function getFriendlyHardwareName(
-        object
-    ) {
+    function getFriendlyHardwareName(object) {
 
         return firstValue(
-
             object,
-
             [
-
                 "display_name",
                 "displayName",
                 "friendly_name",
                 "friendlyName"
-
             ]
-
         );
 
     }
@@ -1438,13 +872,78 @@
 
     /*
      * =========================================================
-     * NORMALIZE HARDWARE RESPONSE
+     * SENSOR NORMALIZATION
      * =========================================================
      */
 
-    function normalizeHardwareResponse(
-        result
-    ) {
+    function normalizeSensor(sensor) {
+
+        if (
+            !sensor ||
+            typeof sensor !== "object"
+        ) {
+
+            return null;
+
+        }
+
+        const temperature =
+            Number(
+                sensor.temperature ??
+                sensor.temp ??
+                sensor.value ??
+                sensor.celsius
+            );
+
+        if (
+            !Number.isFinite(temperature)
+        ) {
+
+            return null;
+
+        }
+
+        const normalized = {
+            ...sensor,
+
+            name:
+                sensor.name ??
+                sensor.label ??
+                sensor.sensor ??
+                sensor.id ??
+                "Unknown Sensor",
+
+            temperature
+        };
+
+
+        /*
+         * device_id is optional in v3.
+         *
+         * Never invent one.
+         */
+
+        if (
+            typeof sensor.device_id !== "string" ||
+            !sensor.device_id.trim()
+        ) {
+
+            delete normalized.device_id;
+
+        }
+
+        return normalized;
+
+    }
+
+
+    /*
+     * =========================================================
+     * HARDWARE STATUS RESPONSE NORMALIZATION
+     * =========================================================
+     */
+
+    function normalizeHardwareResponse(result) {
 
         if (
             !result ||
@@ -1457,13 +956,11 @@
 
         }
 
-
-        let data =
-            result;
+        let data = result;
 
 
         /*
-         * data wrapper
+         * Support harmless wrapper shapes.
          */
 
         if (
@@ -1471,23 +968,16 @@
             typeof data.data === "object"
         ) {
 
-            data =
-                data.data;
+            data = data.data;
 
         }
-
-
-        /*
-         * result wrapper
-         */
 
         if (
             data.result &&
             typeof data.result === "object"
         ) {
 
-            data =
-                data.result;
+            data = data.result;
 
         }
 
@@ -1497,30 +987,44 @@
          */
 
         const rawTemperatures =
-
-            Array.isArray(
-                data.temperatures
-            )
-
+            Array.isArray(data.temperatures)
                 ? data.temperatures
-
-                : (
-
-                    Array.isArray(
-                        data.sensors
-                    )
-
-                        ? data.sensors
-
-                        : []
-
-                );
-
+                : [];
 
         const temperatures =
-            rawTemperatures.map(
-                normalizeSensor
-            );
+            rawTemperatures
+                .slice(0, 128)
+                .map(normalizeSensor)
+                .filter(Boolean);
+
+
+        /*
+         * Fans
+         */
+
+        const fans =
+            Array.isArray(data.fans)
+                ? data.fans
+                    .slice(0, 128)
+                    .filter(
+                        fan =>
+                            fan &&
+                            typeof fan === "object" &&
+                            Number.isFinite(
+                                Number(fan.rpm)
+                            ) &&
+                            Number(fan.rpm) >= 0
+                    )
+                    .map(fan => ({
+                        ...fan,
+                        name:
+                            fan.name ??
+                            fan.label ??
+                            "Unknown Fan",
+                        rpm:
+                            Number(fan.rpm)
+                    }))
+                : [];
 
 
         /*
@@ -1528,12 +1032,43 @@
          */
 
         let cpu =
-
             data.cpu ??
             data.processor ??
             data.cpu_info ??
             data.cpuInfo ??
             null;
+
+        if (
+            cpu &&
+            typeof cpu === "object"
+        ) {
+
+            cpu = {
+                ...cpu,
+
+                usage_percent:
+                    Number.isFinite(
+                        Number(cpu.usage_percent)
+                    )
+                        ? Number(cpu.usage_percent)
+                        : null,
+
+                logical_threads:
+                    Number.isFinite(
+                        Number(cpu.logical_threads)
+                    )
+                        ? Number(cpu.logical_threads)
+                        : null,
+
+                physical_cores:
+                    Number.isFinite(
+                        Number(cpu.physical_cores)
+                    )
+                        ? Number(cpu.physical_cores)
+                        : null
+            };
+
+        }
 
 
         /*
@@ -1541,10 +1076,32 @@
          */
 
         const memory =
+            data.memory &&
+            typeof data.memory === "object"
+                ? data.memory
+                : null;
 
-            data.memory ??
-            data.ram ??
-            null;
+
+        /*
+         * Swap
+         */
+
+        const swap =
+            data.swap &&
+            typeof data.swap === "object"
+                ? data.swap
+                : null;
+
+
+        /*
+         * Load
+         */
+
+        const load =
+            data.load &&
+            typeof data.load === "object"
+                ? data.load
+                : null;
 
 
         /*
@@ -1552,118 +1109,648 @@
          */
 
         let storage =
+            Array.isArray(data.storage)
+                ? data.storage
+                : [];
 
-            data.storage ??
-            data.storages ??
-            data.disks ??
-            data.drives ??
-            [];
+        storage =
+            storage
+                .slice(0, 64)
+                .filter(
+                    disk =>
+                        disk &&
+                        typeof disk === "object"
+                )
+                .map(disk => ({
+                    ...disk,
 
+                    size_bytes:
+                        Number.isFinite(
+                            Number(disk.size_bytes)
+                        )
+                            ? Number(disk.size_bytes)
+                            : null
+                }));
+
+
+        /*
+         * Filesystems
+         */
+
+        const filesystems =
+            Array.isArray(data.filesystems)
+                ? data.filesystems
+                    .slice(0, 64)
+                    .filter(
+                        fs =>
+                            fs &&
+                            typeof fs === "object"
+                    )
+                : [];
+
+
+        /*
+         * Network
+         *
+         * Bridge already caps this at 32.
+         * Keep the addon bounded too.
+         */
+
+        const network =
+            Array.isArray(data.network)
+                ? data.network
+                    .slice(0, 32)
+                    .filter(
+                        iface =>
+                            iface &&
+                            typeof iface === "object" &&
+                            String(iface.status || "")
+                                .toLowerCase() === "up"
+                    )
+                : [];
+
+
+        /*
+         * Version
+         */
+
+        const version =
+            Number.isFinite(
+                Number(data.version)
+            )
+                ? Number(data.version)
+                : 3;
+
+
+        /*
+         * sampled_at
+         */
+
+        const sampled_at =
+            typeof data.sampled_at === "string"
+                ? data.sampled_at
+                : null;
+
+
+        /*
+         * Uptime
+         */
+
+        const uptime_seconds =
+            Number.isFinite(
+                Number(data.uptime_seconds)
+            )
+                ? Number(data.uptime_seconds)
+                : 0;
+
+
+        return {
+
+            ...data,
+
+            version,
+
+            sampled_at,
+
+            temperatures,
+
+            fans,
+
+            cpu,
+
+            storage,
+
+            filesystems,
+
+            network,
+
+            memory,
+
+            swap,
+
+            load,
+
+            uptime_seconds
+
+        };
+
+    }
+
+
+    /*
+     * =========================================================
+     * LOCAL DEVELOPMENT MOCK
+     * =========================================================
+     *
+     * Used only when index.html is opened directly.
+     *
+     * This mirrors the v3 response shape.
+     * =========================================================
+     */
+
+    function getMockData() {
+
+        return {
+
+            version: 3,
+
+            sampled_at:
+                new Date().toISOString(),
+
+
+            cpu: {
+
+                id:
+                    "cpu:0",
+
+                manufacturer:
+                    "AMD",
+
+                model:
+                    "Ryzen 9 5950X",
+
+                usage_percent:
+                    32.5,
+
+                logical_threads:
+                    16,
+
+                physical_cores:
+                    8
+
+            },
+
+
+            temperatures: [
+
+                {
+                    name:
+                        "coretemp Package id 0",
+
+                    temperature:
+                        47.0,
+
+                    device_id:
+                        "cpu:0"
+                },
+
+                {
+                    name:
+                        "coretemp Core 0",
+
+                    temperature:
+                        45.0,
+
+                    device_id:
+                        "cpu:0"
+                },
+
+                {
+                    name:
+                        "coretemp Core 1",
+
+                    temperature:
+                        46.0,
+
+                    device_id:
+                        "cpu:0"
+                },
+
+                {
+                    name:
+                        "r8169_0_d00:00 Sensor 1",
+
+                    temperature:
+                        44.0
+                },
+
+                {
+                    name:
+                        "tg3 Sensor 1",
+
+                    temperature:
+                        47.0
+                },
+
+                {
+                    name:
+                        "nvme Composite",
+
+                    temperature:
+                        39.9,
+
+                    device_id:
+                        "block:nvme0n1"
+                },
+
+                {
+                    name:
+                        "acpitz Sensor 1",
+
+                    temperature:
+                        38.0
+                }
+
+            ],
+
+
+            fans: [
+
+                {
+                    name:
+                        "Mock CPU Fan",
+
+                    rpm:
+                        1450
+                }
+
+            ],
+
+
+            storage: [
+
+                {
+                    id:
+                        "block:sda",
+
+                    name:
+                        "sda",
+
+                    manufacturer:
+                        "Crucial",
+
+                    model:
+                        "CT250MX500SSD1",
+
+                    bus:
+                        "sata",
+
+                    size_bytes:
+                        250059350016
+                },
+
+                {
+                    id:
+                        "block:nvme0n1",
+
+                    name:
+                        "nvme0n1",
+
+                    manufacturer:
+                        "Samsung",
+
+                    model:
+                        "Samsung SSD 990 PRO 2TB",
+
+                    bus:
+                        "nvme",
+
+                    size_bytes:
+                        2000398934016
+                }
+
+            ],
+
+
+            filesystems: [
+
+                {
+                    id:
+                        "dune-data",
+
+                    name:
+                        "Dune Docker Data",
+
+                    total_bytes:
+                        1000000000000,
+
+                    free_bytes:
+                        400000000000,
+
+                    used_bytes:
+                        600000000000,
+
+                    percent:
+                        60
+                }
+
+            ],
+
+
+            network: [
+
+                {
+                    name:
+                        "eth0",
+
+                    status:
+                        "up",
+
+                    rx_bytes:
+                        123456789,
+
+                    tx_bytes:
+                        987654321,
+
+                    speed_mbps:
+                        1000
+                }
+
+            ],
+
+
+            memory: {
+
+                total_kb:
+                    16777216,
+
+                available_kb:
+                    8388608,
+
+                used_kb:
+                    8388608,
+
+                percent:
+                    50
+
+            },
+
+
+            swap: {
+
+                total_kb:
+                    4194304,
+
+                free_kb:
+                    4194304,
+
+                used_kb:
+                    0,
+
+                percent:
+                    0
+
+            },
+
+
+            load: {
+
+                one:
+                    0.25,
+
+                five:
+                    0.20,
+
+                fifteen:
+                    0.18
+
+            },
+
+
+            uptime_seconds:
+                86400
+
+        };
+
+    }
+
+
+    /*
+     * =========================================================
+     * BOUNDED NETWORK HISTORY
+     * =========================================================
+     *
+     * Only ONE previous snapshot is retained.
+     *
+     * This is enough to calculate transfer rates while keeping
+     * addon memory usage bounded.
+     *
+     * Nothing is persisted.
+     * =========================================================
+     */
+
+    let previousNetworkSnapshot =
+        null;
+
+
+    function calculateNetworkRates(
+        network,
+        sampledAt
+    ) {
 
         if (
-            !Array.isArray(storage)
+            !Array.isArray(network)
         ) {
 
-            storage = [
+            previousNetworkSnapshot =
+                null;
 
-                storage
-
-            ];
+            return [];
 
         }
 
 
-        /*
-         * Some APIs may expose CPU directly.
-         */
+        const currentTime =
+            Date.parse(
+                sampledAt || ""
+            );
+
+
+        const previous =
+            previousNetworkSnapshot;
+
+
+        const previousTime =
+            previous
+                ? previous.sampledAt
+                : NaN;
+
+
+        const elapsedSeconds =
+
+            Number.isFinite(currentTime) &&
+            Number.isFinite(previousTime)
+
+                ? (
+                    currentTime -
+                    previousTime
+                ) / 1000
+
+                : NaN;
+
+
+        const previousByName =
+            new Map();
+
 
         if (
-            !cpu
+            previous &&
+            Array.isArray(
+                previous.network
+            )
         ) {
 
-            if (
-
-                data.cpu_model ||
-                data.cpuModel ||
-                data.processor_model
-
+            for (
+                const item
+                of previous.network
             ) {
 
-                cpu = {
+                if (
+                    item &&
+                    typeof item.name === "string"
+                ) {
 
-                    manufacturer:
+                    previousByName.set(
+                        item.name,
+                        item
+                    );
 
-                        data.cpu_manufacturer ??
-                        data.cpuManufacturer ??
-                        data.cpu_vendor ??
-                        null,
-
-                    model:
-
-                        data.cpu_model ??
-                        data.cpuModel ??
-                        data.processor_model ??
-                        null,
-
-                    name:
-
-                        data.cpu_name ??
-                        data.cpuName ??
-                        null
-
-                };
+                }
 
             }
 
         }
 
 
-        /*
-         * IMPORTANT:
-         *
-         * No network normalization here.
-         *
-         * Hardware Status Bridge V2 does not expose
-         * a network hardware section.
-         */
+        const enriched =
+            network
+                .slice(0, 32)
+                .map(item => {
 
-        return {
+                    const current =
+                        item &&
+                        typeof item === "object"
+                            ? item
+                            : {};
 
-            ...data,
 
-            version:
+                    const prior =
+                        previousByName.get(
+                            current.name
+                        );
 
-                data.version ??
-                data.api_version ??
-                data.apiVersion ??
-                2,
 
-            temperatures,
+                    const rx =
+                        Number(
+                            current.rx_bytes
+                        );
 
-            cpu,
 
-            memory,
+                    const tx =
+                        Number(
+                            current.tx_bytes
+                        );
 
-            storage,
 
-            swap:
+                    const priorRx =
+                        prior
+                            ? Number(
+                                prior.rx_bytes
+                            )
+                            : NaN;
 
-                data.swap ??
-                null,
 
-            load:
+                    const priorTx =
+                        prior
+                            ? Number(
+                                prior.tx_bytes
+                            )
+                            : NaN;
 
-                data.load ??
-                null,
 
-            uptime_seconds:
+                    let rxBytesPerSecond =
+                        null;
 
-                data.uptime_seconds ??
-                data.uptimeSeconds ??
-                data.uptime ??
-                0
+
+                    let txBytesPerSecond =
+                        null;
+
+
+                    /*
+                     * If counters reset or wrap,
+                     * do not report a bogus negative rate.
+                     */
+
+                    if (
+                        Number.isFinite(
+                            elapsedSeconds
+                        ) &&
+                        elapsedSeconds > 0 &&
+                        Number.isFinite(rx) &&
+                        Number.isFinite(priorRx) &&
+                        rx >= priorRx
+                    ) {
+
+                        rxBytesPerSecond =
+                            (
+                                rx -
+                                priorRx
+                            ) / elapsedSeconds;
+
+                    }
+
+
+                    if (
+                        Number.isFinite(
+                            elapsedSeconds
+                        ) &&
+                        elapsedSeconds > 0 &&
+                        Number.isFinite(tx) &&
+                        Number.isFinite(priorTx) &&
+                        tx >= priorTx
+                    ) {
+
+                        txBytesPerSecond =
+                            (
+                                tx -
+                                priorTx
+                            ) / elapsedSeconds;
+
+                    }
+
+
+                    return {
+
+                        ...current,
+
+                        rx_bytes_per_second:
+                            rxBytesPerSecond,
+
+                        tx_bytes_per_second:
+                            txBytesPerSecond
+
+                    };
+
+                });
+
+
+        previousNetworkSnapshot = {
+
+            sampledAt:
+                Number.isFinite(
+                    currentTime
+                )
+                    ? currentTime
+                    : Date.now(),
+
+            network:
+                enriched.map(item => ({
+
+                    name:
+                        item.name,
+
+                    rx_bytes:
+                        item.rx_bytes,
+
+                    tx_bytes:
+                        item.tx_bytes
+
+                }))
 
         };
+
+
+        return enriched;
 
     }
 
@@ -1674,9 +1761,7 @@
      * =========================================================
      */
 
-    function renderCpuInfo(
-        cpu
-    ) {
+    function renderCpuInfo(cpu) {
 
         if (
             !cpu ||
@@ -1684,20 +1769,14 @@
         ) {
 
             if (cpuInfo) {
-
                 cpuInfo.textContent =
                     "Not exposed by bridge";
-
             }
-
 
             if (cpuInfoDetail) {
-
                 cpuInfoDetail.textContent =
-                    "V2 CPU identifier unavailable";
-
+                    "V3 CPU identifier unavailable";
             }
-
 
             return;
 
@@ -1705,37 +1784,34 @@
 
 
         const friendly =
-            getFriendlyHardwareName(
-                cpu
-            );
+            getFriendlyHardwareName(cpu);
 
 
         const manufacturer =
-            getManufacturer(
-                cpu
-            );
+            getManufacturer(cpu);
 
 
         const model =
-            getModel(
-                cpu
-            );
+            getModel(cpu);
 
 
-        let primary =
+        const usage =
+            Number(cpu.usage_percent);
+
+
+        const logicalThreads =
+            Number(cpu.logical_threads);
+
+
+        const physicalCores =
+            Number(cpu.physical_cores);
+
+
+        const primary =
             friendly ??
-            model;
-
-
-        if (
-            !primary
-        ) {
-
-            primary =
-                manufacturer ??
-                "Not exposed by bridge";
-
-        }
+            model ??
+            manufacturer ??
+            "Not exposed by bridge";
 
 
         if (cpuInfo) {
@@ -1748,31 +1824,51 @@
 
         if (cpuInfoDetail) {
 
+            const details = [];
+
+
             if (
-                manufacturer &&
-                model
+                Number.isFinite(usage)
             ) {
 
-                cpuInfoDetail.textContent =
-                    `${manufacturer} • ${model}`;
+                details.push(
+                    `Usage ${usage.toFixed(1)}%`
+                );
+
+            }
+
+
+            if (
+                Number.isFinite(
+                    physicalCores
+                ) &&
+                Number.isFinite(
+                    logicalThreads
+                )
+            ) {
+
+                details.push(
+                    `${physicalCores}C / ${logicalThreads}T`
+                );
 
             }
 
             else if (
-                manufacturer
+                Number.isFinite(
+                    logicalThreads
+                )
             ) {
 
-                cpuInfoDetail.textContent =
-                    String(manufacturer);
+                details.push(
+                    `${logicalThreads} threads`
+                );
 
             }
 
-            else {
 
-                cpuInfoDetail.textContent =
-                    "V2 CPU identifier";
-
-            }
+            cpuInfoDetail.textContent =
+                details.join(" • ") ||
+                "V3 CPU information";
 
         }
 
@@ -1781,13 +1877,11 @@
 
     /*
      * =========================================================
-     * MEMORY INFO DISPLAY
+     * MEMORY INFO
      * =========================================================
      */
 
-    function renderMemoryInfo(
-        memory
-    ) {
+    function renderMemoryInfo(memory) {
 
         if (
             !memory ||
@@ -1795,20 +1889,14 @@
         ) {
 
             if (memoryInfo) {
-
                 memoryInfo.textContent =
                     "Not exposed by bridge";
-
             }
-
 
             if (memoryInfoDetail) {
-
                 memoryInfoDetail.textContent =
-                    "V2 memory information unavailable";
-
+                    "V3 memory information unavailable";
             }
-
 
             return;
 
@@ -1816,7 +1904,6 @@
 
 
         const total =
-
             memory.total_bytes ??
             memory.totalBytes;
 
@@ -1828,20 +1915,14 @@
         ) {
 
             if (memoryInfo) {
-
                 memoryInfo.textContent =
                     formatBytes(total);
-
             }
-
 
             if (memoryInfoDetail) {
-
                 memoryInfoDetail.textContent =
                     "Total memory";
-
             }
-
 
             return;
 
@@ -1853,22 +1934,16 @@
         ) {
 
             if (memoryInfo) {
-
                 memoryInfo.textContent =
                     formatBytesFromKB(
                         memory.total_kb
                     );
-
             }
-
 
             if (memoryInfoDetail) {
-
                 memoryInfoDetail.textContent =
                     "Total memory";
-
             }
-
 
             return;
 
@@ -1876,49 +1951,14 @@
 
 
         if (memoryInfo) {
-
             memoryInfo.textContent =
                 "Available";
-
         }
-
 
         if (memoryInfoDetail) {
-
             memoryInfoDetail.textContent =
                 "Capacity not exposed";
-
         }
-
-    }
-
-
-    /*
-     * =========================================================
-     * HARDWARE LIST
-     * =========================================================
-     */
-
-    function normalizeHardwareList(
-        items
-    ) {
-
-        if (
-            !Array.isArray(items)
-        ) {
-
-            return [];
-
-        }
-
-
-        return items.filter(
-
-            item =>
-                item &&
-                typeof item === "object"
-
-        );
 
     }
 
@@ -1927,47 +1967,24 @@
      * =========================================================
      * STORAGE DISPLAY
      * =========================================================
-     *
-     * Layout:
-     *
-     * Manufacturer
-     * Model
-     * Bus
-     *
-     * No fake Example labels.
-     * =========================================================
      */
 
-    function renderStorageInfo(
-        storage
-    ) {
+    function renderStorageInfo(storage) {
 
-        if (
-            !storageInfo
-        ) {
-
+        if (!storageInfo) {
             return;
-
         }
 
 
-        const items =
-            normalizeHardwareList(
-                storage
-            );
-
-
         if (
-            items.length === 0
+            !Array.isArray(storage) ||
+            storage.length === 0
         ) {
 
             storageInfo.innerHTML = `
 
                 <div class="hardware-list-empty">
-
-                    No storage identifiers
-                    exposed by bridge.
-
+                    No storage identifiers exposed.
                 </div>
 
             `;
@@ -1978,155 +1995,287 @@
 
 
         storageInfo.innerHTML =
+            storage.map(disk => {
 
-            items.map(
-
-                item => {
-
-                    const manufacturer =
-                        getManufacturer(
-                            item
-                        );
+                const model =
+                    getModel(disk);
 
 
-                    const model =
-                        getModel(
-                            item
-                        );
+                const size =
+                    Number(
+                        disk.size_bytes
+                    );
 
 
-                    const friendly =
-                        getFriendlyHardwareName(
-                            item
-                        );
+                const primary =
+                    model ??
+                    disk.name ??
+                    disk.id ??
+                    "Unknown storage";
 
 
-                    const bus =
-                        firstValue(
-
-                            item,
-
-                            [
-
-                                "bus",
-                                "type",
-                                "kind"
-
-                            ]
-
-                        );
+                const details = [];
 
 
-                    const primary =
+                if (
+                    Number.isFinite(size)
+                ) {
 
-                        friendly ??
-                        model ??
-                        manufacturer ??
-                        "Unknown Storage Device";
-
-
-                    const details = [];
-
-
-                    if (
-                        manufacturer &&
-                        model &&
-                        manufacturer !== model
-                    ) {
-
-                        details.push(
-                            `${manufacturer} • ${model}`
-                        );
-
-                    }
-
-                    else if (
-                        model
-                    ) {
-
-                        details.push(
-                            String(model)
-                        );
-
-                    }
-
-                    else if (
-                        manufacturer
-                    ) {
-
-                        details.push(
-                            String(manufacturer)
-                        );
-
-                    }
-
-
-                    if (
-                        bus
-                    ) {
-
-                        details.push(
-
-                            String(bus)
-                                .toUpperCase()
-
-                        );
-
-                    }
-
-
-                    return `
-
-                        <div
-                            class="hardware-list-item"
-                        >
-
-                            <div
-                                class="hardware-list-name"
-                            >
-
-                                ${escapeHtml(
-                                    primary
-                                )}
-
-                            </div>
-
-                            <div
-                                class="hardware-list-detail"
-                            >
-
-                                ${escapeHtml(
-
-                                    details.join(
-                                        " • "
-                                    ) ||
-
-                                    "Identifier exposed by bridge"
-
-                                )}
-
-                            </div>
-
-                        </div>
-
-                    `;
+                    details.push(
+                        formatBytes(size)
+                    );
 
                 }
 
-            ).join("");
 
+                return `
+
+                    <div class="hardware-list-item">
+
+                        <div class="hardware-list-name">
+
+                            ${escapeHtml(
+                                primary
+                            )}
+
+                        </div>
+
+                        <div class="hardware-list-detail">
+
+                            ${escapeHtml(
+                                details.join(" • ") ||
+                                "Identifier exposed by bridge"
+                            )}
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }).join("");
+
+    }
+
+
+    function renderFans(fans) {
+
+        const hasFans =
+            Array.isArray(fans) &&
+            fans.length > 0;
+
+        if (fanSection) {
+            fanSection.hidden = !hasFans;
+        }
+
+        if (!fanGrid) return;
+
+        if (!hasFans) {
+            fanGrid.innerHTML = `<div class="loading"><span>No fan sensors found.</span></div>`;
+            return;
+        }
+
+        fanGrid.innerHTML = fans.map(fan => {
+            const rpm = Number(fan.rpm);
+            const value = Number.isFinite(rpm) ? `${Math.max(0, rpm).toFixed(0)} RPM` : "UNKNOWN";
+            return `<div class="sensor fan-card">
+                <div class="sensor-name">${escapeHtml(fan.name || "Unknown Fan")}</div>
+                <div class="sensor-temperature normal">${value}</div>
+                <div class="sensor-state normal">${Number.isFinite(rpm) ? "ONLINE" : "NO DATA"}</div>
+            </div>`;
+        }).join("");
+    }
+
+
+    function renderFilesystems(filesystems) {
+
+        if (!filesystemInfo) return;
+
+        const hasFilesystems =
+            Array.isArray(filesystems) &&
+            filesystems.length > 0;
+
+        if (filesystemInfoCard) {
+            filesystemInfoCard.hidden = !hasFilesystems;
+        }
+
+        if (!hasFilesystems) {
+            filesystemInfo.innerHTML = `<div class="hardware-list-empty">No filesystem data exposed.</div>`;
+            return;
+        }
+
+        filesystemInfo.innerHTML = filesystems.map(fs => {
+            const total = Number(fs.total_bytes);
+            const free = Number(fs.free_bytes);
+            const used = Number(fs.used_bytes);
+            const percent = Number(fs.percent);
+            const details = [];
+            if (Number.isFinite(percent)) details.push(`${percent.toFixed(1)}% used`);
+            if (Number.isFinite(used) && Number.isFinite(total)) details.push(`${formatBytes(used)} / ${formatBytes(total)}`);
+            else if (Number.isFinite(free)) details.push(`${formatBytes(free)} free`);
+            const safePercent = Number.isFinite(percent)
+                ? Math.max(0, Math.min(100, percent))
+                : 0;
+            return `<div class="hardware-list-item">
+                <div class="hardware-list-name">${escapeHtml(fs.name || fs.id || "Unknown filesystem")}</div>
+                <div class="hardware-list-detail">${escapeHtml(details.join(" • ") || "Filesystem data exposed by bridge")}</div>
+                <div class="filesystem-meter" aria-label="${Number.isFinite(percent) ? `${percent.toFixed(1)} percent used` : "Filesystem usage unavailable"}">
+                    <div class="filesystem-meter-fill" style="width: ${safePercent}%"></div>
+                </div>
+            </div>`;
+        }).join("");
+    }
+
+
+    function renderNetwork(network) {
+
+        if (!networkInfo) return;
+
+        const visibleNetwork =
+            Array.isArray(network)
+                ? network.filter(
+                    iface =>
+                        iface &&
+                        String(iface.status || "")
+                            .toLowerCase() === "up"
+                        &&
+                        /^(eno|ens|enp|enx)\d*/i.test(
+                            String(iface.name || "")
+                        )
+                )
+                : [];
+
+        if (visibleNetwork.length === 0) {
+            if (networkInfoCard) {
+                networkInfoCard.hidden = true;
+            }
+            if (networkUsageCard) {
+                networkUsageCard.hidden = true;
+            }
+            networkUsageSamples.length = 0;
+            if (networkUsageStatus) {
+                networkUsageStatus.textContent = "NO DATA";
+            }
+            renderSparkline(networkUsageHistory, [], "#d58cff");
+            networkInfo.innerHTML = `<div class="hardware-list-empty">No network data exposed.</div>`;
+            return;
+        }
+
+        if (networkInfoCard) {
+            networkInfoCard.hidden = false;
+        }
+        if (networkUsageCard) {
+            networkUsageCard.hidden = false;
+        }
+
+        const totalRx = visibleNetwork.reduce(
+            (total, iface) => total + (
+                Number.isFinite(Number(iface.rx_bytes_per_second))
+                    ? Math.max(0, Number(iface.rx_bytes_per_second))
+                    : 0
+            ),
+            0
+        );
+        const totalTx = visibleNetwork.reduce(
+            (total, iface) => total + (
+                Number.isFinite(Number(iface.tx_bytes_per_second))
+                    ? Math.max(0, Number(iface.tx_bytes_per_second))
+                    : 0
+            ),
+            0
+        );
+        const hasRate = visibleNetwork.some(iface =>
+            Number.isFinite(Number(iface.rx_bytes_per_second)) ||
+            Number.isFinite(Number(iface.tx_bytes_per_second))
+        );
+
+        if (networkUsageStatus) {
+            networkUsageStatus.textContent = hasRate
+                ? `↓ ${formatBytes(totalRx)}/s · ↑ ${formatBytes(totalTx)}/s`
+                : "WAITING FOR SECOND SAMPLE";
+        }
+
+        if (hasRate) {
+            networkUsageSamples.push(totalRx + totalTx);
+            if (networkUsageSamples.length > MAX_HISTORY_SAMPLES) {
+                networkUsageSamples.shift();
+            }
+        }
+
+        renderSparkline(
+            networkUsageHistory,
+            networkUsageSamples,
+            "#d58cff",
+            Math.max(1, ...networkUsageSamples)
+        );
+
+        networkInfo.innerHTML = visibleNetwork.map(iface => {
+            const connectionDetails = [];
+            if (iface.status) connectionDetails.push(String(iface.status).toUpperCase());
+            if (Number.isFinite(Number(iface.speed_mbps))) connectionDetails.push(`${Number(iface.speed_mbps)} Mbps`);
+            const rateDetails = [];
+            if (Number.isFinite(Number(iface.rx_bytes_per_second))) rateDetails.push(`↓ ${formatBytes(Number(iface.rx_bytes_per_second))}/s`);
+            if (Number.isFinite(Number(iface.tx_bytes_per_second))) rateDetails.push(`↑ ${formatBytes(Number(iface.tx_bytes_per_second))}/s`);
+            return `<div class="hardware-list-item">
+                <div class="hardware-list-name">${escapeHtml(iface.name || "Unknown interface")}</div>
+                <div class="hardware-list-detail">${escapeHtml(connectionDetails.join(" • ") || "Network data exposed by bridge")}</div>
+                <div class="hardware-list-rate">${escapeHtml(rateDetails.join(" • ") || "Waiting for second sample")}</div>
+            </div>`;
+        }).join("");
+    }
+
+
+    function renderContainerHealth(containers) {
+
+        if (!containerHealthGrid || !containerHealthSection) return;
+
+        const items = Array.isArray(containers)
+            ? containers.filter(item => item && typeof item === "object").slice(0, 64)
+            : [];
+
+        containerHealthSection.hidden = items.length === 0;
+        if (items.length === 0) return;
+
+        containerHealthGrid.innerHTML = items.map(item => {
+            const name = item.name || item.container_name || item.id || "Unknown container";
+            const cpu = Number(item.cpu_percent ?? item.cpu_usage_percent ?? item.cpu);
+            const memory = Number(item.memory_percent ?? item.memory_usage_percent);
+            const memoryBytes = Number(item.memory_usage_bytes ?? item.memory_bytes);
+            const networkRx = Number(item.network_rx_bytes_per_second ?? item.rx_bytes_per_second);
+            const networkTx = Number(item.network_tx_bytes_per_second ?? item.tx_bytes_per_second);
+            const blockRead = Number(item.block_read_bytes_per_second ?? item.read_bytes_per_second);
+            const blockWrite = Number(item.block_write_bytes_per_second ?? item.write_bytes_per_second);
+            const status = item.status || item.state || "UNKNOWN";
+            const details = [];
+            if (Number.isFinite(cpu)) details.push(`CPU ${cpu.toFixed(1)}%`);
+            if (Number.isFinite(memory)) details.push(`Memory ${memory.toFixed(1)}%`);
+            else if (Number.isFinite(memoryBytes)) details.push(`Memory ${formatBytes(memoryBytes)}`);
+            if (Number.isFinite(networkRx)) details.push(`↓ ${formatBytes(networkRx)}/s`);
+            if (Number.isFinite(networkTx)) details.push(`↑ ${formatBytes(networkTx)}/s`);
+            if (Number.isFinite(blockRead)) details.push(`Read ${formatBytes(blockRead)}/s`);
+            if (Number.isFinite(blockWrite)) details.push(`Write ${formatBytes(blockWrite)}/s`);
+            if (item.health) details.push(String(item.health));
+            return `<div class="hardware-list-item">
+                <div class="hardware-list-name">${escapeHtml(name)}</div>
+                <div class="hardware-list-detail">${escapeHtml(String(status).toUpperCase())} • ${escapeHtml(details.join(" • ") || "Container health data exposed by bridge")}</div>
+            </div>`;
+        }).join("");
     }
 
 
     /*
      * =========================================================
-     * RENDER TEMPERATURES
+     * TEMPERATURE DISPLAY
      * =========================================================
      */
 
-    function renderSensors(
-        sensors
-    ) {
+    function renderSensors(sensors) {
+
+        if (temperatureSection) {
+            temperatureSection.hidden =
+                !Array.isArray(sensors) ||
+                sensors.length === 0;
+        }
 
         if (
             !Array.isArray(sensors) ||
@@ -2155,30 +2304,20 @@
 
 
             if (sensorStatus) {
-
                 sensorStatus.textContent =
                     "NO DATA";
-
             }
 
 
-            if (
-                hardwareTemperatureStatus
-            ) {
-
+            if (hardwareTemperatureStatus) {
                 hardwareTemperatureStatus.textContent =
                     "NO DATA";
-
             }
 
 
-            if (
-                hardwareSensorCount
-            ) {
-
+            if (hardwareSensorCount) {
                 hardwareSensorCount.textContent =
                     "0";
-
             }
 
 
@@ -2188,91 +2327,80 @@
 
 
         const validSensors =
-
             sensors.filter(
-
                 sensor =>
                     Number.isFinite(
                         Number(
                             sensor.temperature
                         )
                     )
-
             );
 
+        if (temperatureSection) {
+            temperatureSection.hidden =
+                validSensors.length === 0;
+        }
 
-        if (
-            sensorGrid
-        ) {
+
+        if (sensorGrid) {
 
             sensorGrid.innerHTML =
-
                 validSensors
+                    .map(sensor => {
 
-                    .map(
-
-                        sensor => {
-
-                            const temperature =
-                                Number(
-                                    sensor.temperature
-                                );
+                        const temperature =
+                            Number(
+                                sensor.temperature
+                            );
 
 
-                            const state =
-                                getTemperatureState(
-                                    temperature
-                                );
+                        const state =
+                            getTemperatureState(
+                                temperature
+                            );
 
 
-                            const displayName =
-                                getSensorDisplayName(
-                                    sensor
-                                );
+                        const displayName =
+                            getSensorDisplayName(
+                                sensor
+                            );
 
 
-                            return `
+                        return `
 
-                                <div
-                                    class="sensor"
-                                >
+                            <div class="sensor">
 
-                                    <div
-                                        class="sensor-name"
-                                    >
+                                <div class="sensor-name">
 
-                                        ${escapeHtml(
-                                            displayName
-                                        )}
-
-                                    </div>
-
-                                    <div
-                                        class="sensor-temperature ${state.className}"
-                                    >
-
-                                        ${temperature.toFixed(
-                                            1
-                                        )}°C
-
-                                    </div>
-
-                                    <div
-                                        class="sensor-state ${state.className}"
-                                    >
-
-                                        ${state.name}
-
-                                    </div>
+                                    ${escapeHtml(
+                                        displayName
+                                    )}
 
                                 </div>
 
-                            `;
+                                <div
+                                    class="sensor-temperature ${state.className}"
+                                >
 
-                        }
+                                    ${temperature.toFixed(
+                                        1
+                                    )}°C
 
-                    )
+                                </div>
 
+                                <div
+                                    class="sensor-state ${state.className}"
+                                >
+
+                                    ${state.name}
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    })
                     .join("");
 
         }
@@ -2281,7 +2409,6 @@
         if (sensorStatus) {
 
             sensorStatus.textContent =
-
                 `${validSensors.length} SENSOR${
                     validSensors.length === 1
                         ? ""
@@ -2291,9 +2418,7 @@
         }
 
 
-        if (
-            hardwareTemperatureStatus
-        ) {
+        if (hardwareTemperatureStatus) {
 
             hardwareTemperatureStatus.textContent =
                 "LIVE";
@@ -2301,9 +2426,7 @@
         }
 
 
-        if (
-            hardwareSensorCount
-        ) {
+        if (hardwareSensorCount) {
 
             hardwareSensorCount.textContent =
                 String(
@@ -2317,55 +2440,175 @@
 
     /*
      * =========================================================
-     * RENDER SYSTEM
+     * SYSTEM DISPLAY
      * =========================================================
      */
 
-    function renderSystem(
-        data
-    ) {
+    function renderSparkline(svg, samples, color, scaleMax = 100) {
+
+        if (!svg) return;
+
+        if (!Array.isArray(samples) || samples.length < 2) {
+            svg.hidden = true;
+            svg.replaceChildren();
+            return;
+        }
+
+        const points = samples.map((value, index) => {
+            const x = samples.length === 1
+                ? 0
+                : (index / (samples.length - 1)) * 120;
+            const y = 23 - (Math.max(0, Math.min(scaleMax, value)) / scaleMax) * 22;
+            return `${x.toFixed(2)},${y.toFixed(2)}`;
+        }).join(" ");
+
+        svg.hidden = false;
+        svg.innerHTML = `
+            <line x1="0" y1="1" x2="120" y2="1" stroke="rgba(255,255,255,0.62)" stroke-width="1" stroke-dasharray="3 3"></line>
+            <line x1="0" y1="12" x2="120" y2="12" stroke="rgba(255,255,255,0.38)" stroke-width="0.8" stroke-dasharray="3 3"></line>
+            <line x1="0" y1="23" x2="120" y2="23" stroke="rgba(255,255,255,0.62)" stroke-width="1"></line>
+            <polyline points="${points}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"></polyline>`;
+    }
+
+    function renderSystem(data) {
+
+        const usage =
+            data.cpu && Number(data.cpu.usage_percent);
+
+        if (cpuUsageStatus) {
+            cpuUsageStatus.textContent =
+                Number.isFinite(usage)
+                    ? `${Math.max(0, Math.min(100, usage)).toFixed(1)}%`
+                    : "NO DATA";
+        }
+
+        if (cpuUsageBar) {
+            cpuUsageBar.style.width =
+                Number.isFinite(usage)
+                    ? `${Math.max(0, Math.min(100, usage))}%`
+                    : "0%";
+        }
+
+        if (Number.isFinite(usage)) {
+            cpuUsageSamples.push(
+                Math.max(0, Math.min(100, usage))
+            );
+            if (cpuUsageSamples.length > MAX_HISTORY_SAMPLES) {
+                cpuUsageSamples.shift();
+            }
+        }
+
+        const memoryPercent =
+            data.memory && Number(data.memory.percent);
+
+        if (Number.isFinite(memoryPercent)) {
+            memoryUsageSamples.push(
+                Math.max(0, Math.min(100, memoryPercent))
+            );
+            if (memoryUsageSamples.length > MAX_HISTORY_SAMPLES) {
+                memoryUsageSamples.shift();
+            }
+        }
+
+        const swapPercent =
+            data.swap && Number(data.swap.percent);
+
+        if (Number.isFinite(swapPercent)) {
+            swapUsageSamples.push(
+                Math.max(0, Math.min(100, swapPercent))
+            );
+            if (swapUsageSamples.length > MAX_HISTORY_SAMPLES) {
+                swapUsageSamples.shift();
+            }
+        }
+
+        const loadOne =
+            data.load && Number(data.load.one);
+
+        if (Number.isFinite(loadOne) && loadOne >= 0) {
+            loadOneSamples.push(loadOne);
+            if (loadOneSamples.length > MAX_HISTORY_SAMPLES) {
+                loadOneSamples.shift();
+            }
+        }
+
+        renderSparkline(
+            cpuUsageHistory,
+            cpuUsageSamples,
+            "#5ee88a"
+        );
+
+        renderSparkline(
+            memoryHistory,
+            memoryUsageSamples,
+            "#ffd75e"
+        );
+
+        renderSparkline(
+            swapHistory,
+            swapUsageSamples,
+            "#ff9f43"
+        );
+
+        renderSparkline(
+            loadHistory,
+            loadOneSamples,
+            "#8fd3ff",
+            Math.max(1, ...loadOneSamples)
+        );
 
         /*
          * MEMORY
          */
 
-        if (
-            data.memory
-        ) {
+        if (data.memory) {
 
             const percent =
                 Number(
-                    data.memory.percent ??
-                    0
+                    data.memory.percent
                 );
 
 
-            if (memoryStatus) {
-
-                memoryStatus.textContent =
-
-                    `${percent.toFixed(1)}% ` +
-
-                    `(${formatBytesFromKB(
-                        data.memory.used_kb
-                    )})`;
-
-            }
-
-
-            if (
-                memoryBar
-            ) {
-
-                memoryBar.style.width =
-
-                    `${Math.min(
+            const safePercent =
+                Number.isFinite(percent)
+                    ? Math.min(
                         100,
                         Math.max(
                             0,
                             percent
                         )
-                    )}%`;
+                    )
+                    : 0;
+
+
+            if (memoryStatus) {
+
+                const used =
+                    Number(
+                        data.memory.used_kb
+                    );
+
+
+                memoryStatus.textContent =
+
+                    Number.isFinite(percent)
+
+                        ? `${percent.toFixed(1)}%` +
+                          (
+                              Number.isFinite(used)
+                                  ? ` (${formatBytesFromKB(used)})`
+                                  : ""
+                          )
+
+                        : "UNKNOWN";
+
+            }
+
+
+            if (memoryBar) {
+
+                memoryBar.style.width =
+                    `${safePercent}%`;
 
             }
 
@@ -2374,20 +2617,13 @@
         else {
 
             if (memoryStatus) {
-
                 memoryStatus.textContent =
                     "UNKNOWN";
-
             }
 
-
-            if (
-                memoryBar
-            ) {
-
+            if (memoryBar) {
                 memoryBar.style.width =
                     "0%";
-
             }
 
         }
@@ -2397,43 +2633,55 @@
          * SWAP
          */
 
-        if (
-            data.swap
-        ) {
+        if (data.swap) {
 
             const percent =
                 Number(
-                    data.swap.percent ??
-                    0
+                    data.swap.percent
                 );
 
 
-            if (swapStatus) {
-
-                swapStatus.textContent =
-
-                    `${percent.toFixed(1)}% ` +
-
-                    `(${formatBytesFromKB(
-                        data.swap.used_kb
-                    )})`;
-
-            }
-
-
-            if (
-                swapBar
-            ) {
-
-                swapBar.style.width =
-
-                    `${Math.min(
+            const safePercent =
+                Number.isFinite(percent)
+                    ? Math.min(
                         100,
                         Math.max(
                             0,
                             percent
                         )
-                    )}%`;
+                    )
+                    : 0;
+
+
+            if (swapStatus) {
+
+                const used =
+                    Number(
+                        data.swap.used_kb
+                    );
+
+                const total =
+                    Number(
+                        data.swap.total_kb
+                    );
+
+
+                if (Number.isFinite(percent)) {
+                    swapStatus.innerHTML =
+                        `${Number.isFinite(used) ? formatBytesFromKB(used) : "?"}` +
+                        ` of ${Number.isFinite(total) ? formatBytesFromKB(total) : "?"}` +
+                        `<br><span class="metric-subvalue">(${percent.toFixed(1)}%)</span>`;
+                } else {
+                    swapStatus.textContent = "UNKNOWN";
+                }
+
+            }
+
+
+            if (swapBar) {
+
+                swapBar.style.width =
+                    `${safePercent}%`;
 
             }
 
@@ -2442,20 +2690,13 @@
         else {
 
             if (swapStatus) {
-
                 swapStatus.textContent =
                     "UNKNOWN";
-
             }
 
-
-            if (
-                swapBar
-            ) {
-
+            if (swapBar) {
                 swapBar.style.width =
                     "0%";
-
             }
 
         }
@@ -2465,38 +2706,46 @@
          * LOAD
          */
 
-        if (
-            data.load
-        ) {
+        if (data.load) {
+
+            const one =
+                Number(data.load.one);
+
+            const five =
+                Number(data.load.five);
+
+            const fifteen =
+                Number(data.load.fifteen);
+
 
             if (loadStatus) {
 
                 loadStatus.textContent =
 
-                    `${Number(
-                        data.load.one ?? 0
-                    ).toFixed(2)} / ` +
+                    Number.isFinite(one)
+                        ? one.toFixed(2)
+                        : "?"
 
-                    `${Number(
-                        data.load.five ?? 0
-                    ).toFixed(2)} / ` +
+                    + " / " +
 
-                    `${Number(
-                        data.load.fifteen ?? 0
-                    ).toFixed(2)}`;
+                    Number.isFinite(five)
+                        ? five.toFixed(2)
+                        : "?"
+
+                    + " / " +
+
+                    Number.isFinite(fifteen)
+                        ? fifteen.toFixed(2)
+                        : "?";
 
             }
 
         }
 
-        else {
+        else if (loadStatus) {
 
-            if (loadStatus) {
-
-                loadStatus.textContent =
-                    "UNKNOWN";
-
-            }
+            loadStatus.textContent =
+                "UNKNOWN";
 
         }
 
@@ -2505,9 +2754,7 @@
          * UPTIME
          */
 
-        if (
-            uptimeStatus
-        ) {
+        if (uptimeStatus) {
 
             uptimeStatus.textContent =
                 formatUptime(
@@ -2535,11 +2782,23 @@
             data.storage
         );
 
+        renderFans(data.fans);
+        renderFilesystems(data.filesystems);
+        renderNetwork(data.network);
+
 
         /*
-         * NO renderNetworkInfo().
+         * V3 sections without dedicated HTML
          *
-         * V2 has no network hardware API.
+         * remain available on the normalized `data` object:
+         *
+         *   data.fans
+         *   data.filesystems
+         *   data.network
+         *
+         * Network rates are calculated in memory.
+         *
+         * No telemetry is discarded from the response.
          */
 
     }
@@ -2551,18 +2810,17 @@
      * =========================================================
      */
 
-    function renderBridgeInfo(
-        data
-    ) {
+    function renderBridgeInfo(data) {
 
         const version =
-            data.version ??
-            2;
+            Number.isFinite(
+                Number(data.version)
+            )
+                ? Number(data.version)
+                : 3;
 
 
-        if (
-            hardwareBridgeVersion
-        ) {
+        if (hardwareBridgeVersion) {
 
             hardwareBridgeVersion.textContent =
                 `V${version}`;
@@ -2570,19 +2828,15 @@
         }
 
 
-        if (
-            hardwareBridgeDetail
-        ) {
+        if (hardwareBridgeDetail) {
 
             hardwareBridgeDetail.textContent =
-                "Hardware Status Bridge";
+                `Hardware Status Bridge v${version}`;
 
         }
 
 
-        if (
-            hardwareApiStatus
-        ) {
+        if (hardwareApiStatus) {
 
             hardwareApiStatus.textContent =
                 "ACTIVE";
@@ -2598,28 +2852,57 @@
      * =========================================================
      */
 
+    async function getContainerHealth() {
+
+        if (LOCAL_DEVELOPMENT || !HAS_DUNE_BRIDGE) return [];
+
+        try {
+            const result = await window.DuneAddon.request("ops.health.containers");
+            return Array.isArray(result)
+                ? result
+                : (Array.isArray(result?.containers)
+                    ? result.containers
+                    : (Array.isArray(result?.data?.containers)
+                        ? result.data.containers
+                        : (Array.isArray(result?.result?.containers)
+                            ? result.result.containers
+                            : [])));
+        } catch (error) {
+            console.warn("Container health unavailable:", error);
+            return [];
+        }
+    }
+
+
     async function getHardwareStatus() {
 
         /*
          * LOCAL HTML TEST
          */
 
-        if (
-            LOCAL_DEVELOPMENT
-        ) {
+        if (LOCAL_DEVELOPMENT) {
 
             await new Promise(
-
                 resolve =>
                     setTimeout(
                         resolve,
                         150
                     )
-
             );
 
 
-            return getMockData();
+            const mockData =
+                getMockData();
+
+
+            mockData.network =
+                calculateNetworkRates(
+                    mockData.network,
+                    mockData.sampled_at
+                );
+
+
+            return mockData;
 
         }
 
@@ -2628,9 +2911,7 @@
          * DUNE CONSOLE
          */
 
-        if (
-            !HAS_DUNE_BRIDGE
-        ) {
+        if (!HAS_DUNE_BRIDGE) {
 
             throw new Error(
                 "DuneAddon bridge unavailable."
@@ -2640,19 +2921,48 @@
 
 
         /*
-         * HARDWARE STATUS BRIDGE V2
+         * =====================================================
+         * HARDWARE STATUS BRIDGE V3
+         * =====================================================
+         *
+         * This is intentionally the SAME action name.
+         *
+         * There is no:
+         *
+         *     server.hardware.status.v3
+         *
+         * =====================================================
          */
 
         const result =
-
             await window.DuneAddon.request(
                 "server.hardware.status"
             );
 
 
-        return normalizeHardwareResponse(
-            result
-        );
+            const data =
+                normalizeHardwareResponse(
+                    result
+                );
+
+        data.containers = await getContainerHealth();
+
+
+        /*
+         * Calculate network transfer rates
+         * from successive sampled snapshots.
+         *
+         * This remains in memory only.
+         */
+
+        data.network =
+            calculateNetworkRates(
+                data.network,
+                data.sampled_at
+            );
+
+
+        return data;
 
     }
 
@@ -2681,12 +2991,8 @@
 
     async function loadTemperatures() {
 
-        if (
-            refreshInProgress
-        ) {
-
+        if (refreshInProgress) {
             return;
-
         }
 
 
@@ -2694,9 +3000,7 @@
             true;
 
 
-        if (
-            refreshButton
-        ) {
+        if (refreshButton) {
 
             refreshButton.disabled =
                 true;
@@ -2704,9 +3008,7 @@
         }
 
 
-        if (
-            lastUpdate
-        ) {
+        if (lastUpdate) {
 
             lastUpdate.textContent =
                 "Reading hardware...";
@@ -2714,9 +3016,7 @@
         }
 
 
-        if (
-            sensorStatus
-        ) {
+        if (sensorStatus) {
 
             sensorStatus.textContent =
                 "READING";
@@ -2724,9 +3024,7 @@
         }
 
 
-        if (
-            hardwareTemperatureStatus
-        ) {
+        if (hardwareTemperatureStatus) {
 
             hardwareTemperatureStatus.textContent =
                 "READING";
@@ -2766,17 +3064,16 @@
                 data
             );
 
+            renderContainerHealth(data.containers);
+
 
             /*
              * Server
              */
 
-            if (
-                serverStatus
-            ) {
+            if (serverStatus) {
 
                 serverStatus.textContent =
-
                     LOCAL_DEVELOPMENT
                         ? "LOCAL TEST"
                         : "ONLINE";
@@ -2786,38 +3083,37 @@
 
             /*
              * Timestamp
+             *
+             * V3 sampled_at is the source of truth.
              */
 
-            if (
-                lastUpdate
-            ) {
+            if (lastUpdate) {
+
+                const sampledDate =
+                    data.sampled_at
+                        ? new Date(
+                            data.sampled_at
+                        )
+                        : new Date();
+
 
                 lastUpdate.textContent =
-
                     "Updated " +
-
-                    new Date()
-                        .toLocaleTimeString();
+                    sampledDate.toLocaleTimeString();
 
             }
 
         }
 
-        catch (
-            error
-        ) {
+        catch (error) {
 
             console.error(
-
                 "Fluffy Fox Hardware Status error:",
                 error
-
             );
 
 
-            if (
-                sensorGrid
-            ) {
+            if (sensorGrid) {
 
                 sensorGrid.innerHTML = `
 
@@ -2830,14 +3126,10 @@
                         <span>
 
                             ${escapeHtml(
-
                                 error &&
                                 error.message
-
                                     ? error.message
-
                                     : "Unknown hardware status error."
-
                             )}
 
                         </span>
@@ -2849,22 +3141,15 @@
             }
 
 
-            if (
-                sensorStatus
-            ) {
-
+            if (sensorStatus) {
                 sensorStatus.textContent =
                     "ERROR";
-
             }
 
 
-            if (
-                serverStatus
-            ) {
+            if (serverStatus) {
 
                 serverStatus.textContent =
-
                     LOCAL_DEVELOPMENT
                         ? "LOCAL TEST"
                         : "ERROR";
@@ -2872,79 +3157,49 @@
             }
 
 
-            if (
-                memoryStatus
-            ) {
-
+            if (memoryStatus) {
                 memoryStatus.textContent =
                     "ERROR";
-
             }
 
 
-            if (
-                swapStatus
-            ) {
-
+            if (swapStatus) {
                 swapStatus.textContent =
                     "ERROR";
-
             }
 
 
-            if (
-                loadStatus
-            ) {
-
+            if (loadStatus) {
                 loadStatus.textContent =
                     "ERROR";
-
             }
 
 
-            if (
-                uptimeStatus
-            ) {
-
+            if (uptimeStatus) {
                 uptimeStatus.textContent =
                     "ERROR";
-
             }
 
 
-            if (
-                hardwareTemperatureStatus
-            ) {
-
+            if (hardwareTemperatureStatus) {
                 hardwareTemperatureStatus.textContent =
                     "ERROR";
-
             }
 
 
-            if (
-                hardwareApiStatus
-            ) {
-
+            if (hardwareApiStatus) {
                 hardwareApiStatus.textContent =
                     "ERROR";
-
             }
 
 
-            if (
-                hardwareSensorCount
-            ) {
-
+            if (hardwareSensorCount) {
                 hardwareSensorCount.textContent =
                     "ERROR";
-
             }
 
 
-            if (
-                lastUpdate
-            ) {
+            if (lastUpdate) {
 
                 lastUpdate.textContent =
                     "Hardware status read failed";
@@ -2953,16 +3208,13 @@
 
         }
 
-
         finally {
 
             refreshInProgress =
                 false;
 
 
-            if (
-                refreshButton
-            ) {
+            if (refreshButton) {
 
                 refreshButton.disabled =
                     false;
@@ -3001,12 +3253,8 @@
 
     function updateRefreshUI() {
 
-        if (
-            !refreshInterval
-        ) {
-
+        if (!refreshInterval) {
             return;
-
         }
 
 
@@ -3017,37 +3265,28 @@
 
 
         currentRefreshInterval =
-
             Number.isFinite(
                 milliseconds
             )
-
                 ? milliseconds
-
                 : 0;
 
 
         stopRefreshTimer();
 
 
-        if (
-            refreshStatus
-        ) {
+        if (refreshStatus) {
 
             refreshStatus.textContent =
 
                 currentRefreshInterval > 0
-
                     ? "● Auto-refresh enabled"
-
                     : "● Manual refresh";
 
         }
 
 
-        if (
-            refreshIntervalLabel
-        ) {
+        if (refreshIntervalLabel) {
 
             refreshIntervalLabel.textContent =
 
@@ -3067,13 +3306,9 @@
         ) {
 
             refreshTimer =
-
                 setInterval(
-
                     loadTemperatures,
-
                     currentRefreshInterval
-
                 );
 
         }
@@ -3087,16 +3322,11 @@
      * =========================================================
      */
 
-    if (
-        refreshButton
-    ) {
+    if (refreshButton) {
 
         refreshButton.addEventListener(
-
             "click",
-
             loadTemperatures
-
         );
 
     }
@@ -3108,20 +3338,11 @@
      * =========================================================
      */
 
-    if (
-        refreshInterval
-    ) {
+    if (refreshInterval) {
 
         refreshInterval.addEventListener(
-
             "change",
-
-            function () {
-
-                updateRefreshUI();
-
-            }
-
+            updateRefreshUI
         );
 
     }
@@ -3140,7 +3361,7 @@
 
     /*
      * =========================================================
-     * DEBUG HELPERS
+     * DEBUG / DEVELOPMENT API
      * =========================================================
      */
 

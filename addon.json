@@ -4,13 +4,14 @@
   "name": "Fluffy Fox Status",
   "description": "Hardware and system monitoring addon for Dune Docker Console.",
   "author": "SugarFluff WildHeart",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "type": "ui",
   "entry": {
     "navigation": "Fluffy Fox Status",
     "path": "web/index.html"
   },
   "permissions": {
-    "server": ["status"]
+    "server": ["status"],
+    "ops": ["read"]
   }
 }

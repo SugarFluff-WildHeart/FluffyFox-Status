@@ -11,6 +11,7 @@ const allowedPermissions = new Set([
   "database:write",
   "server:status",
   "server:restart",
+  "ops:read",
   "files:addon-data",
   "broadcast:send"
 ]);

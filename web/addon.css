@@ -2485,3 +2485,227 @@ footer {
             auto !important;
     }
 }
+
+
+/* =========================================================
+ * V3 HARDWARE TELEMETRY
+ * ========================================================= */
+
+.fan-card .sensor-temperature {
+
+    font-size:
+        22px;
+}
+
+
+.hardware-list-name {
+
+    color:
+        var(--text-soft);
+
+    font-size:
+        11px;
+
+    font-weight:
+        750;
+
+    line-height:
+        1.2;
+}
+
+
+.hardware-list-detail {
+
+    margin-top:
+        3px;
+
+    color:
+        var(--text-muted);
+
+    font-size:
+        9px;
+
+    font-weight:
+        550;
+
+    line-height:
+        1.35;
+
+    overflow-wrap:
+        anywhere;
+}
+
+
+#filesystem-info,
+#network-info,
+#storage-info {
+
+    gap:
+        6px;
+}
+
+
+#filesystem-info .hardware-list-item,
+#network-info .hardware-list-item,
+#storage-info .hardware-list-item {
+
+    padding:
+        7px 8px;
+
+    border-radius:
+        7px;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.025
+        );
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.045
+        );
+}
+
+
+#cpu-usage-card .metric-fill {
+
+    background:
+        var(--green);
+}
+
+
+@media (
+    max-width: 520px
+) {
+
+    .hardware-list-name {
+
+        font-size:
+            10px;
+    }
+
+
+    .hardware-list-detail {
+
+        font-size:
+            9px;
+    }
+
+}
+
+
+.hardware-list-rate {
+
+    margin-top:
+        3px;
+
+    color:
+        var(--text);
+
+    font-size:
+        10px;
+
+    font-weight:
+        650;
+
+    line-height:
+        1.25;
+}
+
+
+#network-usage-status {
+
+    font-size:
+        13px;
+
+    line-height:
+        1.2;
+
+    letter-spacing:
+        -0.15px;
+
+    white-space:
+        nowrap;
+
+    overflow:
+        hidden;
+
+    text-overflow:
+        ellipsis;
+}
+
+
+#swap-status {
+
+    font-size:
+        15px;
+
+    line-height:
+        1.05;
+}
+
+
+.metric-subvalue {
+
+    font-size:
+        12px;
+
+    font-weight:
+        700;
+}
+
+
+.filesystem-meter {
+
+    width: 100%;
+
+    height: 4px;
+
+    margin-top: 6px;
+
+    overflow: hidden;
+
+    border-radius: 99px;
+
+    background: rgba(255, 255, 255, 0.08);
+}
+
+
+.filesystem-meter-fill {
+
+    height: 100%;
+
+    border-radius: inherit;
+
+    background: var(--green);
+
+    transition: width 0.35s ease, background 0.2s ease;
+}
+
+
+.metric-sparkline {
+
+    display: block;
+
+    width: 100%;
+
+    height: 24px;
+
+    margin-top: 8px;
+
+    overflow: visible;
+}
+
+
+#cpu-info {
+
+    display: block;
+
+}

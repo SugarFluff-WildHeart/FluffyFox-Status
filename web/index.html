@@ -11,7 +11,7 @@
 
     <title>Fluffy Fox Status</title>
 
-    <link rel="stylesheet" href="./addon.css">
+    <link rel="stylesheet" href="./addon.css?v=0.2.3-swap-compact1">
 </head>
 
 <body>
@@ -163,7 +163,8 @@
          HOST HARDWARE
          ===================================================== -->
 
-    <details
+    <details open
+        id="host-hardware-section"
         class="status-card collapsible-section"
         open
     >
@@ -183,7 +184,7 @@
                     </h2>
 
                     <span class="section-subtitle">
-                        Hardware bridge information
+                        Hardware Status Bridge
                     </span>
 
                 </div>
@@ -206,6 +207,8 @@
 
             <div class="system-grid">
 
+
+                <!-- HARDWARE API -->
 
                 <div class="system-item">
 
@@ -237,6 +240,8 @@
                 </div>
 
 
+                <!-- BRIDGE -->
+
                 <div class="system-item">
 
                     <div class="metric-top">
@@ -256,7 +261,7 @@
                         id="hardware-bridge-version"
                         class="value"
                     >
-                        V2
+                        V3
                     </span>
 
 
@@ -264,11 +269,13 @@
                         id="hardware-bridge-detail"
                         class="metric-hint"
                     >
-                        Hardware Status Bridge
+                        Hardware Status Bridge v3
                     </span>
 
                 </div>
 
+
+                <!-- TEMPERATURE SOURCE -->
 
                 <div class="system-item">
 
@@ -294,11 +301,13 @@
 
 
                     <span class="metric-hint">
-                        Dune Core hardware telemetry
+                        Dune Core v3 hardware telemetry
                     </span>
 
                 </div>
 
+
+                <!-- SENSOR COUNT -->
 
                 <div class="system-item">
 
@@ -341,7 +350,8 @@
          SYSTEM INFO
          ===================================================== -->
 
-    <details
+    <details open
+        id="system-info-section"
         class="status-card collapsible-section"
         open
     >
@@ -423,6 +433,63 @@
                 </div>
 
 
+                <!-- CPU USAGE -->
+
+                <div
+                    id="cpu-usage-card"
+                    class="system-item metric-resource"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            ⚙️
+                        </span>
+
+                        <span class="label">
+                            CPU Usage
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="cpu-usage-status"
+                        class="value"
+                    >
+                        WAITING
+                    </span>
+
+
+                    <div class="metric-bar">
+
+                        <div
+                            id="cpu-usage-bar"
+                            class="metric-fill"
+                        ></div>
+
+                    </div>
+
+                    <svg
+                        id="cpu-usage-history"
+                        class="metric-sparkline"
+                        viewBox="0 0 120 24"
+                        preserveAspectRatio="none"
+                        aria-label="Recent CPU usage history"
+                        hidden
+                    ></svg>
+
+
+                    <span
+                        id="cpu-history-label"
+                        class="metric-hint"
+                    >
+                        Recent usage history · 5 min
+                    </span>
+
+                </div>
+
+
                 <!-- MEMORY -->
 
                 <div
@@ -437,7 +504,7 @@
                         </span>
 
                         <span class="label">
-                            Memory
+                            Total Memory
                         </span>
 
                     </div>
@@ -456,6 +523,22 @@
                         class="metric-hint"
                     >
                         Total memory
+                    </span>
+
+                    <svg
+                        id="memory-history"
+                        class="metric-sparkline"
+                        viewBox="0 0 120 24"
+                        preserveAspectRatio="none"
+                        aria-label="Recent memory usage history"
+                        hidden
+                    ></svg>
+
+                    <span
+                        id="memory-history-label"
+                        class="metric-hint"
+                    >
+                        Recent usage history · 5 min
                     </span>
 
                 </div>
@@ -504,13 +587,13 @@
 
     <!-- =====================================================
          SYSTEM TEMPERATURE
-         
-         MOVED ABOVE SYSTEM STATUS
          ===================================================== -->
 
-    <details
+    <details open
+        id="temperature-section"
         class="status-card collapsible-section"
         open
+        hidden
     >
 
         <summary class="section-summary">
@@ -577,12 +660,49 @@
 
 
     <!-- =====================================================
-         SYSTEM STATUS
-         
-         MOVED BELOW SYSTEM TEMPERATURE
+         FAN SPEEDS
          ===================================================== -->
 
-    <details
+    <div
+        id="fan-section"
+        class="system-item system-item-large"
+        hidden
+    >
+
+        <div class="metric-top">
+
+            <span class="metric-icon">🌀</span>
+            <span class="label">Fan Speeds</span>
+        </div>
+
+            <div
+                id="fan-grid"
+                class="sensor-grid"
+            >
+
+                <div class="loading">
+
+                    <div class="loading-fox">
+                        🦊
+                    </div>
+
+                    <span>
+                        Reading fan speeds...
+                    </span>
+
+                </div>
+
+            </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SYSTEM STATUS
+         ===================================================== -->
+
+    <details open
+        id="system-status-section"
         class="status-card collapsible-section"
     >
 
@@ -699,7 +819,7 @@
                         </span>
 
                         <span class="label">
-                            Memory
+                            Memory Usage
                         </span>
 
                     </div>
@@ -739,7 +859,7 @@
                         </span>
 
                         <span class="label">
-                            Swap
+                            Swap Usage
                         </span>
 
                     </div>
@@ -762,6 +882,15 @@
 
                     </div>
 
+                    <svg
+                        id="swap-history"
+                        class="metric-sparkline"
+                        viewBox="0 0 120 24"
+                        preserveAspectRatio="none"
+                        aria-label="Recent swap usage history"
+                        hidden
+                    ></svg>
+
                 </div>
 
 
@@ -779,7 +908,7 @@
                         </span>
 
                         <span class="label">
-                            Load
+                            Load Usage
                         </span>
 
                     </div>
@@ -795,6 +924,19 @@
 
                     <span class="metric-hint">
                         1m / 5m / 15m
+                    </span>
+
+                    <svg
+                        id="load-history"
+                        class="metric-sparkline"
+                        viewBox="0 0 120 24"
+                        preserveAspectRatio="none"
+                        aria-label="Recent one minute load history"
+                        hidden
+                    ></svg>
+
+                    <span class="metric-hint">
+                        Recent 1m load · 5 min
                     </span>
 
                 </div>
@@ -836,6 +978,203 @@
 
     </details>
 
+
+    <!-- =====================================================
+         V3 HARDWARE TELEMETRY
+         ===================================================== -->
+
+    <details open
+        id="hardware-telemetry-section"
+        class="status-card collapsible-section"
+    >
+
+        <summary class="section-summary">
+
+            <div class="section-heading">
+
+                <span class="section-icon">
+                    📡
+                </span>
+
+                <div>
+
+                    <h2>
+                        Hardware Telemetry
+                    </h2>
+
+                    <span class="section-subtitle">
+                        Live CPU, memory, swap, load and hardware telemetry
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <span class="section-toggle">
+
+                <span class="toggle-icon">
+                    ›
+                </span>
+
+            </span>
+
+        </summary>
+
+
+        <div class="section-content">
+
+            <div class="system-grid">
+
+
+                <!-- FILESYSTEMS -->
+
+                <div
+                    id="filesystem-info-card"
+                    class="system-item system-item-large"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            🗄️
+                        </span>
+
+                        <span class="label">
+                            Filesystems
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="filesystem-info"
+                        class="hardware-list"
+                    >
+
+                        <div class="hardware-list-empty">
+                            Waiting for filesystem data...
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- NETWORK USAGE -->
+
+                <div
+                    id="network-usage-card"
+                    class="system-item"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            📶
+                        </span>
+
+                        <span class="label">
+                            Network Usage
+                        </span>
+
+                    </div>
+
+                    <span
+                        id="network-usage-status"
+                        class="value"
+                    >
+                        WAITING
+                    </span>
+
+                    <svg
+                        id="network-usage-history"
+                        class="metric-sparkline"
+                        viewBox="0 0 120 24"
+                        preserveAspectRatio="none"
+                        aria-label="Recent network throughput history"
+                        hidden
+                    ></svg>
+
+                    <span class="metric-hint">
+                        Recent usage history · 5 min
+                    </span>
+
+                </div>
+
+
+                <!-- NETWORK INTERFACES -->
+
+                <div
+                    id="network-info-card"
+                    class="system-item system-item-large"
+                >
+
+                    <div class="metric-top">
+
+                        <span class="metric-icon">
+                            🌐
+                        </span>
+
+                        <span class="label">
+                            Network Interfaces
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="network-info"
+                        class="hardware-list"
+                    >
+
+                        <div class="hardware-list-empty">
+                            Waiting for network data...
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </details>
+
+
+    <!-- =====================================================
+         PER-CONTAINER HEALTH
+         ===================================================== -->
+
+    <details
+        id="container-health-section"
+        class="status-card collapsible-section"
+        open
+        hidden
+    >
+
+        <summary class="section-summary">
+            <div class="section-heading">
+                <span class="section-icon">🐳</span>
+                <div>
+                    <h2>Per-Container Health</h2>
+                    <span class="section-subtitle">CPU, memory, network and block I/O from ops.health.containers</span>
+                </div>
+            </div>
+            <span class="section-toggle"><span class="toggle-icon">›</span></span>
+        </summary>
+
+        <div class="section-content">
+            <div id="container-health-grid" class="system-grid">
+                <div class="hardware-list-empty">Waiting for container health data...</div>
+            </div>
+        </div>
+
+    </details>
+
+
     <!-- =====================================================
          FOOTER
          ===================================================== -->
@@ -853,7 +1192,7 @@
 		</span>
 
         <span>
-            Dune Addon • v0.2.3
+            Dune Addon • v0.3.0
         </span>
 
     </footer>
@@ -1400,6 +1739,64 @@
      DUNE BRIDGE
      ========================================================= -->
 
+<script>
+    (() => {
+        const container =
+            document.querySelector(".container");
+        const footer =
+            container && container.querySelector("footer");
+
+        if (!container || !footer) return;
+
+        [
+            "system-info-section",
+            "temperature-section",
+            "hardware-telemetry-section",
+            "container-health-section",
+            "system-status-section",
+            "host-hardware-section"
+        ].forEach(id => {
+            const section = document.getElementById(id);
+            if (section) footer.before(section);
+        });
+
+        const telemetryGrid =
+            document.querySelector(
+                "#hardware-telemetry-section .system-grid"
+            );
+
+        const memoryHistory =
+            document.getElementById("memory-history");
+        const memoryHistoryLabel =
+            document.getElementById("memory-history-label");
+        const memoryCard =
+            document.getElementById("memory-card");
+
+        if (memoryCard && memoryHistory) {
+            memoryCard.append(memoryHistory);
+            if (memoryHistoryLabel) {
+                memoryCard.append(memoryHistoryLabel);
+            }
+        }
+
+        if (telemetryGrid) {
+            [
+                "cpu-usage-card",
+                "memory-card",
+                "swap-card",
+                "load-card",
+                "network-usage-card",
+                "fan-section",
+                "filesystem-info-card",
+                "network-info-card"
+            ].forEach(id => {
+                const card = document.getElementById(id);
+                if (card) telemetryGrid.append(card);
+            });
+        }
+    })();
+</script>
+
 <script
     src="./dune-addon-bridge.js"
 ></script>
@@ -1410,7 +1807,7 @@
      ========================================================= -->
 
 <script
-    src="./addon.js"
+    src="./addon.js?v=0.2.3-container-health3"
 ></script>
 
 
