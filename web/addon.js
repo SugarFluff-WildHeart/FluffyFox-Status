@@ -2139,8 +2139,8 @@
                         String(iface.status || "")
                             .toLowerCase() === "up"
                         &&
-                        /^(eno|ens|enp|enx)\d*/i.test(
-                            String(iface.name || "")
+                        !/^(lo|docker\d*|br[-\w]*|veth[-\w]*|virbr\d*|tun\d*|tap\d*|wg\d*|tailscale\d*)$/i.test(
+                            String(iface.name || "").trim()
                         )
                 )
                 : [];
