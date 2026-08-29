@@ -2236,9 +2236,9 @@
         containerHealthSection.hidden = items.length === 0;
         if (items.length === 0) return;
 
-        const unitFactor = unit => ({ B: 1, KIB: 1024, MIB: 1024 ** 2, GIB: 1024 ** 3, TIB: 1024 ** 4 }[String(unit || "B").toUpperCase()] || 1);
+        const unitFactor = unit => ({ B: 1, KB: 1000, MB: 1000 ** 2, GB: 1000 ** 3, TB: 1000 ** 4, KIB: 1024, MIB: 1024 ** 2, GIB: 1024 ** 3, TIB: 1024 ** 4 }[String(unit || "B").toUpperCase()] || 1);
         const parseBytes = value => {
-            const match = String(value ?? "").trim().match(/^([\d.]+)\s*(B|KiB|MiB|GiB|TiB)?$/i);
+            const match = String(value ?? "").trim().match(/^([\d.]+)\s*(B|kB|MB|GB|TB|KiB|MiB|GiB|TiB)?$/i);
             return match ? Number(match[1]) * unitFactor(match[2]) : NaN;
         };
         const parsePairTotal = value => String(value ?? "").split("/").reduce((sum, part) => sum + (Number.isFinite(parseBytes(part)) ? parseBytes(part) : 0), 0);
