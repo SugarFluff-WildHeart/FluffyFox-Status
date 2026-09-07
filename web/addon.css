@@ -83,6 +83,24 @@
         url(
             "./bg/fluffy-fox-status-bg.png"
         );
+
+    --fox-ui-blur:
+        2px;
+
+    --fox-panel-opacity:
+        0.28;
+
+    --fox-bar-color:
+        var(--green);
+
+    --fox-temp-normal:
+        #5ee88a;
+
+    --fox-temp-warning:
+        #ffd75e;
+
+    --fox-temp-critical:
+        #ff5e5e;
 }
 
 
@@ -225,9 +243,6 @@ header {
 
 .fox {
 
-    font-size:
-        42px;
-
     line-height:
         1;
 
@@ -361,7 +376,7 @@ p {
             18,
             21,
             30,
-            0.30
+            var(--fox-panel-opacity)
         );
 
     border:
@@ -377,10 +392,10 @@ p {
         10px;
 
     backdrop-filter:
-        blur(2px);
+        blur(var(--fox-ui-blur));
 
     -webkit-backdrop-filter:
-        blur(2px);
+        blur(var(--fox-ui-blur));
 
     box-shadow:
         0 5px 16px
@@ -1003,7 +1018,12 @@ select:focus {
 .status-card {
 
     background:
-        var(--panel);
+        rgba(
+            18,
+            21,
+            30,
+            var(--fox-panel-opacity)
+        );
 
     border:
         1px solid
@@ -1019,10 +1039,10 @@ select:focus {
         10px;
 
     backdrop-filter:
-        blur(2px);
+        blur(var(--fox-ui-blur));
 
     -webkit-backdrop-filter:
-        blur(2px);
+        blur(var(--fox-ui-blur));
 
     box-shadow:
         var(--shadow);
@@ -1606,28 +1626,45 @@ button:disabled
 .normal {
 
     color:
-        var(--green);
+        var(--fox-temp-normal);
+}
+
+
+.fox img {
+    display: block;
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+
+.footer-fox-icon {
+    width: 14px;
+    height: 14px;
+    margin-right: 3px;
+    vertical-align: -2px;
+    object-fit: contain;
 }
 
 
 .warm {
 
     color:
-        var(--yellow);
+        var(--fox-temp-warning);
 }
 
 
 .hot {
 
     color:
-        var(--orange);
+        var(--fox-temp-warning);
 }
 
 
 .critical {
 
     color:
-        var(--red);
+        var(--fox-temp-critical);
 }
 
 
@@ -1960,7 +1997,7 @@ span:first-child {
         inherit;
 
     background:
-        var(--green);
+        var(--fox-bar-color);
 
     transition:
         width 0.35s ease,
@@ -2236,6 +2273,11 @@ footer {
             39px;
     }
 
+    .fox img {
+        width: 46px;
+        height: 46px;
+    }
+
 
     h1 {
 
@@ -2265,6 +2307,16 @@ footer {
 
         flex-direction:
             column;
+    }
+
+
+    .appearance-toolbar {
+        align-items: stretch;
+    }
+
+
+    .appearance-toolbar input[type="range"] {
+        flex: 1;
     }
 
 
@@ -2374,6 +2426,11 @@ footer {
 
         font-size:
             36px;
+    }
+
+    .fox img {
+        width: 42px;
+        height: 42px;
     }
 
 
@@ -2577,7 +2634,14 @@ footer {
 #cpu-usage-card .metric-fill {
 
     background:
-        var(--green);
+        var(--fox-bar-color);
+}
+
+
+#memory-bar,
+#swap-bar,
+#cpu-usage-bar {
+    background: var(--fox-bar-color);
 }
 
 
@@ -2598,6 +2662,84 @@ footer {
             9px;
     }
 
+}
+
+
+/* Readability over user-selected artwork. */
+.status-card,
+.control-toolbar,
+.appearance-toolbar,
+.system-item,
+.hardware-list-item,
+.status-card h1,
+.status-card h2,
+.status-card h3,
+.status-card .label,
+.status-card .section-subtitle,
+.status-card .metric-hint,
+.status-card .hardware-list-name,
+.status-card .hardware-list-detail,
+.status-card .hardware-list-rate,
+.status-card .container-meter-label {
+
+    font-weight:
+        700;
+
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.98),
+        0 0 7px rgba(0, 0, 0, 0.9);
+}
+
+
+.status-card,
+.status-card h1,
+.status-card h2,
+.status-card h3 {
+    color: var(--text);
+}
+
+
+/* Keep neutral labels tied to the selected text palette even when a
+ * component-specific rule appears later in the stylesheet. */
+.status-card .value {
+    color: var(--text) !important;
+}
+
+.status-card .label,
+.status-card .hardware-list-name,
+.status-card .sensor-name {
+    color: var(--text-soft) !important;
+}
+
+.status-card .metric-hint,
+.status-card .section-subtitle,
+.status-card .hardware-list-detail,
+.status-card .hardware-list-rate,
+.status-card .container-meter-label,
+.status-card .hardware-list-empty {
+    color: var(--text-muted) !important;
+}
+
+
+.control-toolbar,
+.appearance-toolbar,
+.status-card,
+.system-item,
+.hardware-list-item {
+    backdrop-filter: blur(var(--fox-ui-blur));
+    -webkit-backdrop-filter: blur(var(--fox-ui-blur));
+}
+
+
+.status-card .section-heading h2,
+.status-card .sensor-name,
+.status-card .sensor-state,
+.status-card .sensor-temperature,
+.status-card .hardware-list-empty {
+
+    text-shadow:
+        0 1px 3px rgba(0, 0, 0, 1),
+        0 0 9px rgba(0, 0, 0, 0.95);
 }
 
 
@@ -2640,10 +2782,70 @@ footer {
     transition: width 0.35s ease;
 }
 
-.container-meter-fill.cpu { background: var(--green); }
-.container-meter-fill.memory { background: var(--yellow); }
+.container-meter-fill.cpu { background: var(--fox-bar-color); }
+.container-meter-fill.memory { background: var(--fox-bar-color); }
 .container-meter-fill.network { background: #8fd3ff; }
 .container-meter-fill.block { background: #d58cff; }
+
+
+.appearance-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    background: rgba(18, 21, 30, var(--fox-panel-opacity));
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    backdrop-filter: blur(var(--fox-ui-blur));
+    -webkit-backdrop-filter: blur(var(--fox-ui-blur));
+}
+
+.appearance-toolbar label,
+.appearance-title {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-soft);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+    white-space: nowrap;
+}
+
+.appearance-title {
+    color: var(--text);
+    margin-right: 3px;
+}
+
+.appearance-toolbar input[type="range"] {
+    width: 54px;
+    height: 14px;
+    accent-color: var(--green);
+    cursor: pointer;
+}
+
+.appearance-toolbar output {
+    min-width: 28px;
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 700;
+    text-align: right;
+}
+
+.appearance-toolbar select {
+    min-width: 58px;
+    padding: 4px 6px;
+    font-size: 9px;
+}
+
+.appearance-color {
+    width: 22px;
+    height: 18px;
+    padding: 1px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+}
 
 
 #network-usage-status {
@@ -2710,7 +2912,7 @@ footer {
 
     border-radius: inherit;
 
-    background: var(--green);
+    background: var(--fox-bar-color);
 
     transition: width 0.35s ease, background 0.2s ease;
 }

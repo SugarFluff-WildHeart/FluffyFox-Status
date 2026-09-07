@@ -2225,6 +2225,52 @@
     }
 
 
+    function formatContainerDisplayName(value) {
+        const raw = String(value ?? "").trim();
+        if (!raw) return "Unknown container";
+
+        // Keep the bridge's raw Docker name available via the title attribute,
+        // while showing a stable, readable label in the card itself.  Do not
+        // reject names here: newly spawned maps and stopped services must stay
+        // visible even when their naming differs from today's installations.
+        const aliases = {
+            "dune-autoscaler": "Autoscaler",
+            "dune-coriolis-coordinator": "Coriolis Coordinator",
+            "dune-director": "Director",
+            "dune-orchestrator": "Orchestrator",
+            "dune-postgres": "PostgreSQL",
+            "dune-rmq-admin": "RabbitMQ Admin",
+            "dune-rmq-game": "RabbitMQ Game",
+            "dune-server-gateway": "Gateway",
+            "dune-server-overmap": "Overmap",
+            "dune-text-router": "Text Router",
+            "redblink-dune-docker-console": "Dune Docker Console"
+        };
+        if (aliases[raw.toLowerCase()]) return aliases[raw.toLowerCase()];
+
+        let name = raw
+            .replace(/^dune-server-/i, "")
+            .replace(/^dune-/i, "")
+            .replace(/^sh-/i, "")
+            .replace(/_/g, "-")
+            .replace(/deepdesert/gi, "deep-desert")
+            .replace(/harkovillage/gi, "harko-village")
+            .replace(/arrakeen/gi, "arrakeen")
+            .replace(/survival(?=-|\d)/gi, "survival-")
+            .replace(/-+/g, "-")
+            .replace(/^-|-$/g, "");
+
+        const deepDesertGrid = name.match(/^deep-desert-(\d+)-(\d+)$/i);
+        if (deepDesertGrid) return `Deep Desert ${deepDesertGrid[1]}-${deepDesertGrid[2]}`;
+
+        const words = name.split("-").filter(Boolean).map(word => {
+            if (/^\d+$/.test(word)) return word;
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        });
+        return words.join(" ") || raw;
+    }
+
+
     function renderContainerHealth(containers) {
 
         if (!containerHealthGrid || !containerHealthSection) return;
@@ -2246,7 +2292,8 @@
         const maxBlock = Math.max(1, ...items.map(item => parsePairTotal(item.blockIO ?? item.block_io)));
 
         containerHealthGrid.innerHTML = items.map(item => {
-            const name = item.name || item.container_name || item.id || "Unknown container";
+            const rawName = item.name || item.container_name || item.id || "Unknown container";
+            const name = formatContainerDisplayName(rawName);
             const cpu = item.cpu ?? item.cpu_percent ?? item.cpu_usage_percent;
             const memory = item.memory ?? item.memory_percent ?? item.memory_usage_percent;
             const memoryLimit = item.memoryLimit ?? item.memory_limit ?? item.memory_limit_bytes;
@@ -2265,7 +2312,7 @@
             const networkTotal = parsePairTotal(networkIO);
             const blockTotal = parsePairTotal(blockIO);
             return `<div class="hardware-list-item">
-                <div class="hardware-list-name">${escapeHtml(name)}</div>
+                <div class="hardware-list-name" title="${escapeHtml(String(rawName))}">${escapeHtml(name)}</div>
                 <div class="hardware-list-detail">${escapeHtml(statusText)}${details.length ? ` • ${escapeHtml(details.join(" • "))}` : ""}</div>
                 ${Number.isFinite(cpuPercent) ? `<div class="container-meter-label">CPU</div><div class="container-meter" title="CPU ${escapeHtml(String(cpu))}" aria-label="CPU ${escapeHtml(String(cpu))}"><div class="container-meter-fill cpu" style="width:${Math.max(0, Math.min(100, cpuPercent))}%"></div></div>` : ""}
                 ${Number.isFinite(memoryPercent) ? `<div class="container-meter-label">Memory</div><div class="container-meter" title="Memory ${escapeHtml(String(memory))} / ${escapeHtml(String(memoryLimit))}" aria-label="Memory ${escapeHtml(String(memory))} of ${escapeHtml(String(memoryLimit))}"><div class="container-meter-fill memory" style="width:${Math.max(0, Math.min(100, memoryPercent))}%"></div></div>` : ""}

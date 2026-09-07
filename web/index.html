@@ -10,8 +10,9 @@
     >
 
     <title>Fluffy Fox Status</title>
+    <link rel="icon" type="image/x-icon" href="./vixens.ico">
 
-    <link rel="stylesheet" href="./addon.css?v=0.3.3-release1">
+    <link rel="stylesheet" href="./addon.css?v=0.3.4-appearance1">
 </head>
 
 <body>
@@ -25,7 +26,7 @@
     <header>
 
         <div class="fox">
-            🦊
+            <img src="./vixens.ico" alt="Fluffy Fox icon">
         </div>
 
         <div class="header-content">
@@ -156,6 +157,48 @@
 
         </div>
 
+
+    </div>
+
+
+    <!-- =================================================
+         APPEARANCE TUNING
+         Global visual settings; intentionally outside the
+         refresh controls so they do not look like telemetry.
+         ================================================= -->
+
+    <div class="appearance-toolbar" aria-label="Appearance controls">
+        <span class="appearance-title">✨ Appearance</span>
+        <label for="appearance-blur">Blur</label>
+        <input id="appearance-blur" type="range" min="0" max="16" step="1" value="2" aria-label="Panel blur">
+        <output id="appearance-blur-value" for="appearance-blur">2px</output>
+        <label for="appearance-opacity">Opacity</label>
+        <input id="appearance-opacity" type="range" min="15" max="85" step="5" value="28" aria-label="Panel opacity">
+        <output id="appearance-opacity-value" for="appearance-opacity">28%</output>
+        <label for="appearance-text">Text color</label>
+        <select id="appearance-text" aria-label="Text color">
+            <option value="light">Light</option>
+            <option value="warm">Warm</option>
+            <option value="cyan">Cyan</option>
+            <option value="pink">Pink</option>
+            <option value="green">Green</option>
+            <option value="purple">Purple</option>
+            <option value="orange">Orange</option>
+            <option value="red">Red</option>
+            <option value="blue">Blue</option>
+            <option value="teal">Teal</option>
+            <option value="gold">Gold</option>
+            <option value="lavender">Lavender</option>
+            <option value="mono">Monochrome</option>
+        </select>
+        <label for="appearance-normal">Normal</label>
+        <input id="appearance-normal" class="appearance-color" type="color" value="#5ee88a" aria-label="Normal status color">
+        <label for="appearance-warning">Warning</label>
+        <input id="appearance-warning" class="appearance-color" type="color" value="#ffd75e" aria-label="Warning status color">
+        <label for="appearance-critical">Critical</label>
+        <input id="appearance-critical" class="appearance-color" type="color" value="#ff5e5e" aria-label="Critical status color">
+        <label for="appearance-bars">Bars</label>
+        <input id="appearance-bars" class="appearance-color" type="color" value="#5ee88a" aria-label="Usage bar color">
     </div>
 
 
@@ -1179,7 +1222,7 @@
     <footer>
 
         <span>
-            🦊 Fluffy Fox Status
+            <img class="footer-fox-icon" src="./vixens.ico" alt=""> Fluffy Fox Status
         </span>
 		
 		<span>
@@ -1189,13 +1232,93 @@
 		</span>
 
         <span>
-            Dune Addon • v0.3.3
+            Dune Addon • v0.3.4
         </span>
 
     </footer>
 
 
 </div>
+
+
+<script>
+(function () {
+    "use strict";
+
+    const blur = document.getElementById("appearance-blur");
+    const opacity = document.getElementById("appearance-opacity");
+    const text = document.getElementById("appearance-text");
+    const normal = document.getElementById("appearance-normal");
+    const warning = document.getElementById("appearance-warning");
+    const critical = document.getElementById("appearance-critical");
+    const bars = document.getElementById("appearance-bars");
+    const blurValue = document.getElementById("appearance-blur-value");
+    const opacityValue = document.getElementById("appearance-opacity-value");
+    if (!blur || !opacity || !text) return;
+
+    const STORAGE_KEY = "fluffy-fox-status-appearance";
+    const textThemes = {
+        light: ["#f4f5f7", "#e3e6eb", "#c9cdd4"],
+        warm: ["#ffd06a", "#ffdf91", "#e6b965"],
+        cyan: ["#74f2ff", "#9ff6ff", "#68cbd6"],
+        pink: ["#ff8fdb", "#ffb9e8", "#df91c3"],
+        green: ["#74ff9d", "#a5ffba", "#78d391"],
+        purple: ["#d39bff", "#e4c2ff", "#b88dd8"],
+        orange: ["#ffae55", "#ffc47d", "#df9c53"],
+        red: ["#ff8585", "#ffabab", "#df7c7c"],
+        blue: ["#78bbff", "#a6d3ff", "#78a9d6"],
+        teal: ["#62e6c2", "#9af2d9", "#6fc4ab"],
+        gold: ["#ffd15c", "#ffe39a", "#d9b45b"],
+        lavender: ["#c9a7ff", "#e0ccff", "#ab8ed7"],
+        mono: ["#ffffff", "#d7d7d7", "#a8a8a8"]
+    };
+
+    function applyAppearance() {
+        const root = document.documentElement;
+        const blurPx = `${Number(blur.value)}px`;
+        const alpha = Math.max(0.15, Math.min(0.85, Number(opacity.value) / 100));
+        const colors = textThemes[text.value] || textThemes.light;
+        root.style.setProperty("--fox-ui-blur", blurPx);
+        root.style.setProperty("--fox-panel-opacity", alpha);
+        root.style.setProperty("--text", colors[0]);
+        root.style.setProperty("--text-soft", colors[1]);
+        root.style.setProperty("--text-muted", colors[2]);
+        root.style.setProperty("--muted", colors[2]);
+        root.style.setProperty("--fox-temp-normal", normal.value);
+        root.style.setProperty("--fox-temp-warning", warning.value);
+        root.style.setProperty("--fox-temp-critical", critical.value);
+        root.style.setProperty("--fox-bar-color", bars.value);
+        blurValue.textContent = blurPx;
+        opacityValue.textContent = `${Math.round(alpha * 100)}%`;
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                blur: blur.value,
+                opacity: opacity.value,
+                text: text.value,
+                normal: normal.value,
+                warning: warning.value,
+                critical: critical.value,
+                bars: bars.value
+            }));
+        } catch (error) { /* appearance still applies for this session */ }
+    }
+
+    try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (saved && Number.isFinite(Number(saved.blur))) blur.value = String(Math.max(0, Math.min(16, Number(saved.blur))));
+        if (saved && Number.isFinite(Number(saved.opacity))) opacity.value = String(Math.max(15, Math.min(85, Number(saved.opacity))));
+        if (saved && textThemes[saved.text]) text.value = saved.text;
+        if (saved && /^#[0-9a-f]{6}$/i.test(saved.normal)) normal.value = saved.normal;
+        if (saved && /^#[0-9a-f]{6}$/i.test(saved.warning)) warning.value = saved.warning;
+        if (saved && /^#[0-9a-f]{6}$/i.test(saved.critical)) critical.value = saved.critical;
+        if (saved && /^#[0-9a-f]{6}$/i.test(saved.bars)) bars.value = saved.bars;
+    } catch (error) { /* use defaults */ }
+
+    [blur, opacity, text, normal, warning, critical, bars].forEach(control => control.addEventListener("input", applyAppearance));
+    [blur, opacity, text, normal, warning, critical, bars].forEach(control => control.addEventListener("change", applyAppearance));
+    applyAppearance();
+})();
+</script>
 
 
 <!-- =========================================================
@@ -1271,7 +1394,9 @@
 		"Docker.png",
 		"GreenStone.png",
 		"Tarp3.png",
-		"GWC.png"
+		"GWC.png",
+		"COSAF.png",
+		"SIETCH-CORIOLIS.png"
 
     ];
 
@@ -1804,7 +1929,7 @@
      ========================================================= -->
 
 <script
-    src="./addon.js?v=0.3.3-release1"
+    src="./addon.js?v=0.3.4-release1"
 ></script>
 
 
