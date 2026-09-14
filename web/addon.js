@@ -12,7 +12,8 @@
      *
      *     server.hardware.status
      *
-     * No ops.health access is used here.
+     * Host telemetry uses server.hardware.status. Optional container
+     * health uses the separate ops.health.containers action.
      *
      * V3 host telemetry supported:
      *
@@ -176,6 +177,12 @@
 
     const containerHealthGrid =
         $("#container-health-grid");
+
+    const telemetrySourceMeta =
+        $("#telemetry-source-meta");
+
+    const containerHealthMeta =
+        $("#container-health-meta");
 
     const MAX_HISTORY_SAMPLES = 60;
     const cpuUsageSamples = [];
@@ -2280,7 +2287,10 @@
             : [];
 
         containerHealthSection.hidden = items.length === 0;
-        if (items.length === 0) return;
+        if (items.length === 0) {
+            if (containerHealthMeta) containerHealthMeta.textContent = "";
+            return;
+        }
 
         const unitFactor = unit => ({ B: 1, KB: 1000, MB: 1000 ** 2, GB: 1000 ** 3, TB: 1000 ** 4, KIB: 1024, MIB: 1024 ** 2, GIB: 1024 ** 3, TIB: 1024 ** 4 }[String(unit || "B").toUpperCase()] || 1);
         const parseBytes = value => {
@@ -2291,7 +2301,19 @@
         const maxNetwork = Math.max(1, ...items.map(item => parsePairTotal(item.networkIO ?? item.network_io)));
         const maxBlock = Math.max(1, ...items.map(item => parsePairTotal(item.blockIO ?? item.block_io)));
 
-        containerHealthGrid.innerHTML = items.map(item => {
+        const groups = new Map([
+            ["Game Servers", []],
+            ["Dune Services", []],
+            ["Other Containers", []]
+        ]);
+        items.forEach(item => {
+            const raw = String(item.name || item.container_name || item.id || "").toLowerCase();
+            const group = raw.includes("dune-server") ? "Game Servers" :
+                (/dune-(autoscaler|coriolis|director|orchestrator|gateway|overmap|text-router|rmq|postgres|console|public-probe)/i.test(raw) ? "Dune Services" : "Other Containers");
+            groups.get(group).push(item);
+        });
+
+        const renderItem = item => {
             const rawName = item.name || item.container_name || item.id || "Unknown container";
             const name = formatContainerDisplayName(rawName);
             const cpu = item.cpu ?? item.cpu_percent ?? item.cpu_usage_percent;
@@ -2309,9 +2331,10 @@
             const limitBytes = limitMatch ? Number(limitMatch[1]) * unitFactor(limitMatch[2]) : NaN;
             const memoryPercent = Number.isFinite(memoryBytes) && Number.isFinite(limitBytes) && limitBytes > 0 ? (memoryBytes / limitBytes) * 100 : NaN;
             const statusText = String(status).toUpperCase();
+            const isStopped = /^(EXITED|CREATED|DEAD|REMOVING|UNKNOWN)/i.test(statusText);
             const networkTotal = parsePairTotal(networkIO);
             const blockTotal = parsePairTotal(blockIO);
-            return `<div class="hardware-list-item">
+            return `<div class="hardware-list-item container-health-item ${isStopped ? "container-stopped" : "container-running"}">
                 <div class="hardware-list-name" title="${escapeHtml(String(rawName))}">${escapeHtml(name)}</div>
                 <div class="hardware-list-detail">${escapeHtml(statusText)}${details.length ? ` • ${escapeHtml(details.join(" • "))}` : ""}</div>
                 ${Number.isFinite(cpuPercent) ? `<div class="container-meter-label">CPU</div><div class="container-meter" title="CPU ${escapeHtml(String(cpu))}" aria-label="CPU ${escapeHtml(String(cpu))}"><div class="container-meter-fill cpu" style="width:${Math.max(0, Math.min(100, cpuPercent))}%"></div></div>` : ""}
@@ -2319,7 +2342,18 @@
                 ${Number.isFinite(networkTotal) && networkIO ? `<div class="container-meter-label">Network I/O</div><div class="container-meter" title="Network I/O ${escapeHtml(String(networkIO))}" aria-label="Network I/O ${escapeHtml(String(networkIO))}"><div class="container-meter-fill network" style="width:${Math.min(100, (networkTotal / maxNetwork) * 100)}%"></div></div>` : ""}
                 ${Number.isFinite(blockTotal) && blockIO ? `<div class="container-meter-label">Block I/O</div><div class="container-meter" title="Block I/O ${escapeHtml(String(blockIO))}" aria-label="Block I/O ${escapeHtml(String(blockIO))}"><div class="container-meter-fill block" style="width:${Math.min(100, (blockTotal / maxBlock) * 100)}%"></div></div>` : ""}
             </div>`;
-        }).join("");
+        };
+
+        containerHealthGrid.innerHTML = Array.from(groups.entries())
+            .filter(([, groupItems]) => groupItems.length)
+            .map(([label, groupItems]) => `<div class="container-health-group-title">${escapeHtml(label)}</div>${groupItems.map(renderItem).join("")}`)
+            .join("");
+
+        if (containerHealthMeta) {
+            const running = items.filter(item => !/^(EXITED|CREATED|DEAD|REMOVING|UNKNOWN)/i.test(String(item.status || item.state || "UNKNOWN"))).length;
+            const stopped = items.length - running;
+            containerHealthMeta.textContent = ` · ${running} running${stopped ? ` · ${stopped} stopped` : ""}`;
+        }
     }
 
 
@@ -2426,11 +2460,12 @@
                             );
 
 
+                        const source = sensor.device_id || sensor.source || "Linux hwmon";
                         return `
 
                             <div class="sensor">
 
-                                <div class="sensor-name">
+                                <div class="sensor-name" title="Source: ${escapeHtml(String(source))}">
 
                                     ${escapeHtml(
                                         displayName
@@ -3171,8 +3206,13 @@
 
 
                 lastUpdate.textContent =
-                    "Updated " +
+                "Updated " +
                     sampledDate.toLocaleTimeString();
+
+                if (telemetrySourceMeta) {
+                    const ageSeconds = Math.max(0, (Date.now() - sampledDate.getTime()) / 1000);
+                    telemetrySourceMeta.textContent = ` · Linux hwmon/proc · ${ageSeconds < 3 ? "current" : `sample ${Math.round(ageSeconds)}s old`}`;
+                }
 
             }
 

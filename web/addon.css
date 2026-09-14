@@ -1629,6 +1629,31 @@ button:disabled
         var(--fox-temp-normal);
 }
 
+.telemetry-meta {
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+
+.container-health-item.container-stopped {
+    opacity: .72;
+}
+
+.container-health-item.container-stopped .hardware-list-detail {
+    color: var(--fox-temp-warning);
+}
+
+.container-health-group-title {
+    grid-column: 1 / -1;
+    margin: 8px 0 1px;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
 
 .fox img {
     display: block;

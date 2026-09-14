@@ -12,7 +12,7 @@
     <title>Fluffy Fox Status</title>
     <link rel="icon" type="image/x-icon" href="./vixens.ico">
 
-    <link rel="stylesheet" href="./addon.css?v=0.3.4-appearance1">
+    <link rel="stylesheet" href="./addon.css?v=0.3.5-clarity1">
 </head>
 
 <body>
@@ -1044,6 +1044,7 @@
 
                     <span class="section-subtitle">
                         Live CPU, memory, swap, load and hardware telemetry
+                        <span id="telemetry-source-meta" class="telemetry-meta"></span>
                     </span>
 
                 </div>
@@ -1200,7 +1201,10 @@
                 <span class="section-icon">🐳</span>
                 <div>
                     <h2>Per-Container Health</h2>
-                    <span class="section-subtitle">CPU, memory, network and block I/O from ops.health.containers</span>
+                    <span class="section-subtitle">
+                        CPU, memory, network and block I/O from ops.health.containers
+                        <span id="container-health-meta" class="telemetry-meta"></span>
+                    </span>
                 </div>
             </div>
             <span class="section-toggle"><span class="toggle-icon">›</span></span>
@@ -1232,7 +1236,7 @@
 		</span>
 
         <span>
-            Dune Addon • v0.3.4
+            Dune Addon • v0.3.5
         </span>
 
     </footer>
@@ -1929,7 +1933,7 @@
      ========================================================= -->
 
 <script
-    src="./addon.js?v=0.3.4-release1"
+    src="./addon.js?v=0.3.5-clarity1"
 ></script>
 
 
